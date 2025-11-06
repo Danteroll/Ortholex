@@ -22,22 +22,22 @@ if (!in_array($page, $pages)) $page = 'principal';
   <div class="sidebar">
     <ul class="menu">
       <li class="<?php echo ($page=='citas') ? 'active' : ''; ?>">
-        <a href="?page=citas" style="text-decoration:none; color:inherit;">Citas</a>
+        <a href="?page=citas">Citas</a>
       </li>
       <li class="<?php echo ($page=='expediente') ? 'active' : ''; ?>">
-        <a href="?page=expediente" style="text-decoration:none; color:inherit;">Expedientes</a>
+        <a href="?page=expediente">Expedientes</a>
       </li>
       <li class="<?php echo ($page=='inventario') ? 'active' : ''; ?>">
-        <a href="?page=inventario" style="text-decoration:none; color:inherit;">Inventario</a>
+        <a href="?page=inventario">Inventario</a>
       </li>
       <li class="<?php echo ($page=='pago') ? 'active' : ''; ?>">
-        <a href="?page=pago" style="text-decoration:none; color:inherit;">Pagos</a>
+        <a href="?page=pago">Pagos</a>
       </li>
       <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>">
-        <a href="?page=pacientes" style="text-decoration:none; color:inherit;">Pacientes</a>
+        <a href="?page=pacientes">Pacientes</a>
       </li>
       <li class="<?php echo ($page=='principal') ? 'active' : ''; ?>">
-        <a href="?page=principal" style="text-decoration:none; color:inherit;">Salir</a>
+        <a href="?page=principal">Salir</a>
       </li>
     </ul>
   </div>
@@ -60,4 +60,3 @@ if (!in_array($page, $pages)) $page = 'principal';
 
 </body>
 </html>
-

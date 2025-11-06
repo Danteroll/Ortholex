@@ -7,6 +7,8 @@ body {
   overflow: hidden;
   flex-direction: column;
 }
+
+/* === Barra superior === */
 .topbar {
   background-color: #eec4c5;
   height: 20vh;
@@ -21,10 +23,17 @@ body {
   justify-content: flex-start;
   padding-left: 30px;
 }
+
+/* ✅ Logo adaptable */
 .topbar-logo {
-  width: 200px;
-  height: 200px;
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+  object-position: left center;
 }
+
+/* === Sidebar === */
 .sidebar {
   width: 240px;
   background-color: #a16976;
@@ -39,6 +48,7 @@ body {
   top: 0;
   z-index: 5;
 }
+
 .menu {
   list-style: none;
   padding: 0;
@@ -47,6 +57,12 @@ body {
   gap: 25px;
   padding-top: 40px;
 }
+
+.menu a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .menu li {
   padding: 30px 25px;
   margin: 10px 15px;
@@ -58,14 +74,14 @@ body {
   font-weight: bold;
   border-radius: 8px;
 }
+
 .menu li:hover,
 .menu li.active {
   background-color: #ac5e70;
   color: white;
 }
-.menu li:nth-last-child(2) {
-  margin-bottom: 100px;
-}
+
+/* === Contenido principal === */
 .main {
   flex: 1;
   margin-left: 240px;
@@ -75,8 +91,9 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   height: calc(80vh - 20px);
-  overflow: hidden;
+  overflow-y: auto;
 }
+
 .content {
   background-color: white;
   border-radius: 12px;
@@ -84,10 +101,12 @@ body {
   padding: 40px;
   text-align: center;
 }
+
 .content h2 {
   color: #111827;
   margin-bottom: 10px;
 }
+
 .content p {
   color: #4b5563;
   font-size: 16px;
