@@ -1,62 +1,121 @@
-<?php
-$page = isset($_GET['page']) ? $_GET['page'] : 'principal';
-$pages = ['principal','citas','expediente','inventario','pago','pacientes'];
-if (!in_array($page, $pages)) $page = 'principal';
-?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ortholex — <?php echo ucfirst($page); ?></title>
+  <title>Ortholex - Iniciar Sesión</title>
   <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
-
   <!-- Barra superior -->
   <div class="topbar">
     <img src="imagenes/logo" alt="Logo" class="topbar-logo">
   </div>
 
-  <!-- Menú lateral -->
-  <div class="sidebar">
-    <ul class="menu">
-      <li class="<?php echo ($page=='citas') ? 'active' : ''; ?>">
-        <a href="?page=citas">Citas</a>
-      </li>
-      <li class="<?php echo ($page=='expediente') ? 'active' : ''; ?>">
-        <a href="?page=expediente">Expedientes</a>
-      </li>
-      <li class="<?php echo ($page=='inventario') ? 'active' : ''; ?>">
-        <a href="?page=inventario">Inventario</a>
-      </li>
-      <li class="<?php echo ($page=='pago') ? 'active' : ''; ?>">
-        <a href="?page=pago">Pagos</a>
-      </li>
-      <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>">
-        <a href="?page=pacientes">Pacientes</a>
-      </li>
-      <li class="<?php echo ($page=='principal') ? 'active' : ''; ?>">
-        <a href="?page=principal">Salir</a>
-      </li>
-    </ul>
-  </div>
+  <!-- Contenedor principal -->
+  <div class="login-container">
+    <div class="login-box">
+      <h2>Bienvenida, Doctora</h2>
 
-  <!-- Contenido dinámico -->
-  <div class="main">
-    <div class="content">
-      <?php
-        switch ($page) {
-          case 'principal': include("form_paciente.php"); break;
-          case 'citas': include("form_cita.php"); break;
-          case 'expediente': include("form_expediente.php"); break;
-          case 'inventario': include("form_inventario.php"); break;
-          case 'pago': include("form_pago.php"); break;
-          case 'pacientes': include("pacientes_registrados.php"); break;
-        }
-      ?>
+      <!-- Formulario de inicio de sesión -->
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+          <p id="error-message" class="error-message"></p>
+        </div>
+
+        <button type="submit" class="btn-login">Entrar</button>
+      </form>
+
+      <!-- Enlace para recuperar/cambiar contraseña -->
+      <p class="login-footer">
+        ¿Olvidaste tu contraseña? <a href="#" id="showChangePassword">Recupérala aquí</a>
+      </p>
+
+      <!-- Formulario oculto de cambio de contraseña -->
+      <div id="changePasswordBox" class="change-box" style="display: none;">
+        <h3>Cambiar contraseña</h3>
+        <form id="changePasswordForm">
+          <div class="input-group">
+            <label for="securityAnswer">¿Cuál es el nombre de tu hija?</label>
+            <input type="text" id="securityAnswer" name="securityAnswer" placeholder="Escribe tu respuesta" required>
+          </div>
+
+          <div class="input-group">
+            <label for="newPass">Nueva contraseña</label>
+            <input type="password" id="newPass" name="newPass" placeholder="Ingresa una nueva contraseña" required>
+          </div>
+
+          <button type="submit" class="btn-login">Guardar nueva contraseña</button>
+          <p id="change-message" class="change-message"></p>
+        </form>
+      </div>
     </div>
   </div>
 
+  <script>
+    // Bloquear navegación con botones del navegador
+    history.pushState(null, document.title, location.href);
+    window.addEventListener('popstate', function () {
+      history.pushState(null, document.title, location.href);
+    });
+
+    // Contraseña y pregunta de seguridad
+    let passwordCorrecta = localStorage.getItem("passwordOrtholex") || "1234";
+    const respuestaSeguridad = "lexie";
+
+    // Mostrar formulario de cambio de contraseña
+    document.getElementById("showChangePassword").addEventListener("click", function(e) {
+      e.preventDefault();
+      document.getElementById("changePasswordBox").style.display = "block";
+      document.getElementById("loginForm").style.display = "none";
+      document.querySelector(".login-footer").style.display = "none";
+    });
+
+    // Inicio de sesión
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const password = document.getElementById('password').value.trim();
+      const errorMessage = document.getElementById('error-message');
+
+      if (password === passwordCorrecta) {
+        sessionStorage.setItem("logueado", "true");
+        window.location.href = "inicio.php"; // 🔗 Redirige al dashboard
+      } else {
+        errorMessage.textContent = "Contraseña incorrecta. Intenta nuevamente.";
+        document.getElementById('password').value = "";
+        document.getElementById('password').focus();
+      }
+    });
+
+    // Cambio de contraseña con pregunta de seguridad
+    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const respuesta = document.getElementById('securityAnswer').value.trim().toLowerCase();
+      const nueva = document.getElementById('newPass').value.trim();
+      const msg = document.getElementById('change-message');
+
+      if (respuesta === respuestaSeguridad) {
+        localStorage.setItem("passwordOrtholex", nueva);
+        passwordCorrecta = nueva;
+        msg.textContent = "Contraseña actualizada correctamente.";
+        msg.style.color = "#2ecc71";
+
+        setTimeout(() => {
+          document.getElementById("changePasswordBox").style.display = "none";
+          document.getElementById("loginForm").style.display = "block";
+          document.querySelector(".login-footer").style.display = "block";
+          msg.textContent = "";
+        }, 2000);
+      } else {
+        msg.textContent = "Respuesta incorrecta. Intenta nuevamente.";
+        msg.style.color = "#c0392b";
+      }
+
+      document.getElementById('securityAnswer').value = "";
+      document.getElementById('newPass').value = "";
+    });
+  </script>
 </body>
 </html>
