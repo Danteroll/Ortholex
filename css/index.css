@@ -1,3 +1,4 @@
+/* === Barra superior === */
 .topbar {
   background-color: #eec4c5;
   height: 20vh;
@@ -9,21 +10,29 @@
   box-shadow: 0 2px 10px rgba(0,0,0,0.4);
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding-left: 30px;
+  justify-content: center; /* ✅ centrado horizontal del logo */
+  overflow: hidden; /* ✅ evita que la imagen se salga de la franja */
 }
+
+/* === Logo adaptable === */
 .topbar-logo {
-  width: 200px;
-  height: 200px;
+  height: 100%;
+  max-height: 100%;
+  width: auto;
+  object-fit: contain; /* ✅ evita recortes */
+  object-position: center;
 }
+
+/* === Contenedor principal === */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: white;
+  background-color: #f3f4f8;
   position: relative;
 }
+
 .login-container::before {
   content: "";
   height: 20vh;
@@ -31,6 +40,8 @@
   position: absolute;
   top: 0;
 }
+
+/* === Caja principal === */
 .login-box {
   background-color: #ffffff;
   padding: 45px 60px;
@@ -41,12 +52,15 @@
   border-top: 6px solid #a16976;
   z-index: 2;
 }
+
 .login-box h2 {
   color: #a16976;
   margin-bottom: 35px;
   font-size: 26px;
   font-weight: bold;
 }
+
+/* === Campos de entrada === */
 .input-group {
   display: flex;
   flex-direction: column;
@@ -54,11 +68,13 @@
   margin-bottom: 22px;
   text-align: left;
 }
+
 .input-group label {
   font-weight: bold;
   margin-bottom: 6px;
   color: #4b5563;
 }
+
 .input-group input {
   width: 100%;
   padding: 10px 12px;
@@ -68,10 +84,21 @@
   outline: none;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
+
 .input-group input:focus {
   border-color: #a16976;
   box-shadow: 0 0 4px rgba(161, 105, 118, 0.4);
 }
+
+/* === Contenedor de botones === */
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* === Botones idénticos (Guardar / Cancelar) === */
 .btn-login {
   background-color: #a16976;
   color: white;
@@ -81,25 +108,39 @@
   font-size: 16px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
   font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
+
 .btn-login:hover {
   background-color: #8e5562;
+  transform: scale(1.02);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
+
+.btn-login:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* === Textos y mensajes === */
 .login-footer {
   margin-top: 20px;
   font-size: 14px;
   color: #555;
 }
+
 .login-footer a {
   color: #a16976;
   text-decoration: none;
   font-weight: bold;
 }
+
 .login-footer a:hover {
   text-decoration: underline;
 }
+
 .error-message {
   color: #c0392b;
   font-size: 14px;
@@ -108,6 +149,8 @@
   font-weight: 600;
   height: 18px;
 }
+
+/* === Cambio de contraseña === */
 .change-box {
   margin-top: 25px;
 }
@@ -117,6 +160,7 @@
   font-size: 20px;
   margin-bottom: 20px;
 }
+
 .change-message {
   margin-top: 15px;
   font-size: 14px;
@@ -124,4 +168,3 @@
   height: 18px;
   text-align: center;
 }
-

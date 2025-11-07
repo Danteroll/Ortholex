@@ -30,7 +30,7 @@
 
       <!-- Enlace para recuperar/cambiar contraseña -->
       <p class="login-footer">
-        ¿Olvidaste tu contraseña? <a href="#" id="showChangePassword">Recupérala aquí</a>
+        ¿Olvidaste tu contraseña? <a href="#" id="showChangePassword">Cambiala aquí</a>
       </p>
 
       <!-- Formulario oculto de cambio de contraseña -->
@@ -39,7 +39,8 @@
         <form id="changePasswordForm">
           <div class="input-group">
             <label for="securityAnswer">¿Cuál es el nombre de tu hija?</label>
-            <input type="text" id="securityAnswer" name="securityAnswer" placeholder="Escribe tu respuesta" required>
+            <!-- 🔒 Campo oculto tipo contraseña -->
+            <input type="password" id="securityAnswer" name="securityAnswer" placeholder="Escribe tu respuesta" required>
           </div>
 
           <div class="input-group">
@@ -47,7 +48,12 @@
             <input type="password" id="newPass" name="newPass" placeholder="Ingresa una nueva contraseña" required>
           </div>
 
-          <button type="submit" class="btn-login">Guardar nueva contraseña</button>
+          <div class="buttons">
+            <button type="submit" class="btn-login">Guardar nueva contraseña</button>
+            <!-- 🔙 Nuevo botón de cancelar -->
+            <button type="button" class="btn-login" id="cancelChange">Cancelar</button>
+          </div>
+
           <p id="change-message" class="change-message"></p>
         </form>
       </div>
@@ -55,13 +61,13 @@
   </div>
 
   <script>
-    // Bloquear navegación con botones del navegador
+    // Bloquear botones del navegador
     history.pushState(null, document.title, location.href);
     window.addEventListener('popstate', function () {
       history.pushState(null, document.title, location.href);
     });
 
-    // Contraseña y pregunta de seguridad
+    // Contraseña y respuesta de seguridad
     let passwordCorrecta = localStorage.getItem("passwordOrtholex") || "1234";
     const respuestaSeguridad = "lexie";
 
@@ -73,7 +79,7 @@
       document.querySelector(".login-footer").style.display = "none";
     });
 
-    // Inicio de sesión
+    // Iniciar sesión
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const password = document.getElementById('password').value.trim();
@@ -81,7 +87,7 @@
 
       if (password === passwordCorrecta) {
         sessionStorage.setItem("logueado", "true");
-        window.location.href = "inicio.php"; // 🔗 Redirige al dashboard
+        window.location.href = "inicio.php";
       } else {
         errorMessage.textContent = "Contraseña incorrecta. Intenta nuevamente.";
         document.getElementById('password').value = "";
@@ -89,7 +95,7 @@
       }
     });
 
-    // Cambio de contraseña con pregunta de seguridad
+    // Cambiar contraseña usando pregunta de seguridad
     document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const respuesta = document.getElementById('securityAnswer').value.trim().toLowerCase();
@@ -115,6 +121,14 @@
 
       document.getElementById('securityAnswer').value = "";
       document.getElementById('newPass').value = "";
+    });
+
+    // 🔙 Cancelar cambio de contraseña y volver al login
+    document.getElementById('cancelChange').addEventListener('click', function() {
+      document.getElementById("changePasswordBox").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
+      document.querySelector(".login-footer").style.display = "block";
+      document.getElementById('change-message').textContent = "";
     });
   </script>
 </body>
