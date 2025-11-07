@@ -85,6 +85,10 @@ tr:hover{background:#f1f5fb}
 
 </form>
 
+<div>
+  <a class="btn" href="form_paciente.php" role="button">Nuevo paciente</a>
+</div>
+
 <?php
 // === GUARDAR CITA ===
 if(isset($_POST['guardar'])){
