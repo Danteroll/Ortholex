@@ -10,6 +10,22 @@ if (!in_array($page, $pages)) $page = 'principal';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ortholex — <?php echo ucfirst($page); ?></title>
   <link rel="stylesheet" href="css/inicio.css">
+
+  <script>
+    // 🔒 Verificar si el usuario está logueado
+    document.addEventListener("DOMContentLoaded", () => {
+      const logueado = sessionStorage.getItem("logueado");
+      if (logueado !== "true") {
+        window.location.href = "index.php";
+      }
+    });
+
+    // 🚫 Bloquear los botones "atrás" y "adelante" del navegador
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+      history.pushState(null, null, location.href);
+    };
+  </script>
 </head>
 <body>
 
@@ -36,8 +52,8 @@ if (!in_array($page, $pages)) $page = 'principal';
       <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>">
         <a href="?page=pacientes">Pacientes</a>
       </li>
-      <li class="<?php echo ($page=='principal') ? 'active' : ''; ?>">
-        <a href="?page=principal">Salir</a>
+      <li>
+        <a href="#" id="logout">Salir</a>
       </li>
     </ul>
   </div>
@@ -58,5 +74,15 @@ if (!in_array($page, $pages)) $page = 'principal';
     </div>
   </div>
 
+  <script>
+    // 🔓 Cerrar sesión
+    document.getElementById("logout").addEventListener("click", function(e) {
+      e.preventDefault();
+      sessionStorage.removeItem("logueado");
+      window.location.href = "index.php";
+    });
+  </script>
+
 </body>
 </html>
+
