@@ -111,3 +111,31 @@ body {
   color: #4b5563;
   font-size: 16px;
 }
+/* === Pantalla de bienvenida === */
+.bienvenida {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;
+  text-align: center;
+  color: #1d3557;
+  font-family: 'Segoe UI', sans-serif;
+  animation: fadeIn 1s ease;
+}
+
+.bienvenida h1 {
+  font-size: 36px;
+  color: #a16976;
+  margin-bottom: 10px;
+}
+
+.bienvenida p {
+  font-size: 18px;
+  color: #4b5563;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

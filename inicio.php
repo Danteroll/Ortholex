@@ -10,17 +10,16 @@ if (!in_array($page, $pages)) $page = 'principal';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ortholex — <?php echo ucfirst($page); ?></title>
   <link rel="stylesheet" href="css/inicio.css">
-
   <script>
-    // 🔒 Verificar si el usuario está logueado
+    // 🔒 Verificar inicio de sesión
     document.addEventListener("DOMContentLoaded", () => {
       const logueado = sessionStorage.getItem("logueado");
       if (logueado !== "true") {
-        window.location.href = "index.php";
+        window.location.href = "index.php"; // redirige al login si no hay sesión
       }
     });
 
-    // 🚫 Bloquear los botones "atrás" y "adelante" del navegador
+    // 🚫 Bloquear botones de navegador
     history.pushState(null, null, location.href);
     window.onpopstate = function () {
       history.pushState(null, null, location.href);
@@ -37,38 +36,32 @@ if (!in_array($page, $pages)) $page = 'principal';
   <!-- Menú lateral -->
   <div class="sidebar">
     <ul class="menu">
-      <li class="<?php echo ($page=='citas') ? 'active' : ''; ?>">
-        <a href="?page=citas">Citas</a>
-      </li>
-      <li class="<?php echo ($page=='expediente') ? 'active' : ''; ?>">
-        <a href="?page=expediente">Expedientes</a>
-      </li>
-      <li class="<?php echo ($page=='inventario') ? 'active' : ''; ?>">
-        <a href="?page=inventario">Inventario</a>
-      </li>
-      <li class="<?php echo ($page=='pago') ? 'active' : ''; ?>">
-        <a href="?page=pago">Pagos</a>
-      </li>
-      <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>">
-        <a href="?page=pacientes">Pacientes</a>
-      </li>
-      <li>
-        <a href="#" id="logout">Salir</a>
-      </li>
+      <li class="<?php echo ($page=='citas') ? 'active' : ''; ?>"><a href="?page=citas">Citas</a></li>
+      <li class="<?php echo ($page=='expediente') ? 'active' : ''; ?>"><a href="?page=expediente">Expedientes</a></li>
+      <li class="<?php echo ($page=='inventario') ? 'active' : ''; ?>"><a href="?page=inventario">Inventario</a></li>
+      <li class="<?php echo ($page=='pago') ? 'active' : ''; ?>"><a href="?page=pago">Pagos</a></li>
+      <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>"><a href="?page=pacientes">Pacientes</a></li>
+      <li><a href="#" id="logout">Salir</a></li>
     </ul>
   </div>
 
-  <!-- Contenido dinámico -->
+  <!-- Contenido principal -->
   <div class="main">
     <div class="content">
       <?php
-        switch ($page) {
-          case 'principal': include("form_paciente.php"); break;
-          case 'citas': include("form_cita.php"); break;
-          case 'expediente': include("form_expediente.php"); break;
-          case 'inventario': include("form_inventario.php"); break;
-          case 'pago': include("form_pago.php"); break;
-          case 'pacientes': include("pacientes_registrados.php"); break;
+        if ($page == 'principal') {
+          echo '<div class="bienvenida">';
+          echo '<h1>Bienvenida al Sistema DEADBJ</h1>';
+          echo '<p>Seleccione una opción del menú lateral para comenzar.</p>';
+          echo '</div>';
+        } else {
+          switch ($page) {
+            case 'citas': include("form_cita.php"); break;
+            case 'expediente': include("form_expediente.php"); break;
+            case 'inventario': include("form_inventario.php"); break;
+            case 'pago': include("form_pago.php"); break;
+            case 'pacientes': include("pacientes_registrados.php"); break;
+          }
         }
       ?>
     </div>
@@ -79,10 +72,11 @@ if (!in_array($page, $pages)) $page = 'principal';
     document.getElementById("logout").addEventListener("click", function(e) {
       e.preventDefault();
       sessionStorage.removeItem("logueado");
-      window.location.href = "index.php";
+      window.location.href = "index.php"; // vuelve al login
     });
   </script>
 
 </body>
 </html>
+
 
