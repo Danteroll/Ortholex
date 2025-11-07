@@ -39,12 +39,12 @@
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
     /* === Ajustes de contraste en la tabla de enfermedades === */
 #enfermedades-tabla th {
-  background: #1e293b;       /* tono gris-azulado medio */
+  background: #a16976;       /* tono gris-azulado medio */
   color: #f1f5f9;            /* texto claro */
 }
 
 #enfermedades-tabla td {
-  background: #0f172a;       /* panel oscuro igual que el fondo general */
+  background: #a16976;       /* panel oscuro igual que el fondo general */
   color: #e2e8f0;            /* texto visible */
 }
 
@@ -54,9 +54,9 @@
 }
 
 #enfermedades-tabla input[type="text"] {
-  background: #1e293b;
+  background: #a16976;
   color: #f8fafc;
-  border: 1px solid #334155;
+  border: 1px solid #a16976;
   border-radius: 8px;
 }
 
@@ -66,7 +66,7 @@
 
 /* alternar filas para mejor legibilidad */
 #enfermedades-tabla tbody tr:nth-child(even) td {
-  background: #111827;
+  background: #a16976;
 }
  
 </style>
