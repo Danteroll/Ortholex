@@ -1,129 +1,149 @@
-<?php include("conexion.php"); ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Nuevo Artículo — Ortholex</title>
-<style>
-body{
-  font-family:'Segoe UI',sans-serif;
-  background:#f8fbff;
-  margin:0;
-  padding:40px;
-  color:#1d3557;
-}
-h2{color:#1d3557}
-form{
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-  max-width:450px;
-  box-shadow:0 3px 6px rgba(0,0,0,0.1);
-  margin-bottom:40px;
-}
-label{display:block;margin-top:10px;font-weight:600}
-input{
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:1px solid #ccc;
-  border-radius:6px;
-}
-.btn{
-  margin-top:15px;
-  background-color:#3b82f6;
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.btn:hover{background-color:#2563eb}
-table{
-  border-collapse:collapse;
-  width:100%;
-  background:#fff;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-th,td{
-  border:1px solid #ddd;
-  padding:10px;
-  text-align:center;
-}
-th{
-  background:#e8f1ff;
-  color:#1d3557;
-}
-tr:hover{background:#f1f5fb}
-</style>
-</head>
-<body>
+<div class="inventario-container">
 
-<h2>Agregar artículo al inventario</h2>
-<form method="POST" action="">
-    <label>Nombre del artículo:</label>
-    <input type="text" name="nombre_objeto" required>
+  <!-- Encabezado del módulo -->
+  <div class="inventario-header">
+    <h2>Inventario actual</h2>
+    <button id="btnModificar" class="btn-modificar">Modificar inventario</button>
+  </div>
 
-    <label>Cantidad:</label>
-    <input type="number" name="cantidad" min="0" required>
+  <!-- Selección de acción -->
+  <div id="accionesInventario" class="acciones-box" style="display:none;">
+    <h3>Seleccione una acción:</h3>
+    <div class="acciones-buttons">
+      <button id="btnAgregar" class="btn-accion agregar">Agregar artículo</button>
+      <button id="btnEliminar" class="btn-accion eliminar">Eliminar artículo</button>
+      <button id="btnCancelarAccion" class="btn-cancelar">Cancelar</button>
+    </div>
+  </div>
 
-    <label>Descripción (opcional):</label>
-    <input type="text" name="descripcion">
+  <!-- Formulario AGREGAR -->
+  <div id="formAgregar" class="form-box" style="display:none;">
+    <h3>Agregar artículo al inventario</h3>
+    <form action="guardar_inventario.php" method="post"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
-    <label>Fecha de modificación:</label>
-    <input type="date" name="fecha_modificacion" required>
+      <div class="input-group">
+        <label for="nombre">Nombre del artículo:</label>
+        <input type="text" id="nombre" name="nombre" required>
+      </div>
 
-    <button class="btn" name="guardar">Guardar</button>
-</form>
+      <div class="input-group">
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="cantidad" required min="1">
+      </div>
 
-<?php
-// === GUARDAR NUEVO ARTÍCULO ===
-if(isset($_POST['guardar'])){
-    $nombre = $_POST['nombre_objeto'];
-    $cant = $_POST['cantidad'];
-    $desc = $_POST['descripcion'];
-    $fecha = $_POST['fecha_modificacion'];
+      <div class="input-group">
+        <label for="descripcion">Descripción (opcional):</label>
+        <input type="text" id="descripcion" name="descripcion">
+      </div>
 
-    $stmt = $conexion->prepare("INSERT INTO inventario (nombre_objeto, descripcion, cantidad, fecha_modificacion)
-                                VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssis", $nombre, $desc, $cant, $fecha);
-    $stmt->execute();
+      <div class="input-group">
+        <label for="fecha">Fecha de modificación:</label>
+        <input type="date" id="fecha" name="fecha">
+      </div>
 
-    echo "<script>alert('Artículo agregado correctamente');window.location='index.php?page=inventario';</script>";
-}
-?>
+      <div class="buttons">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" id="btnCancelarAgregar" class="btn-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </div>
 
-<!-- ===================== LISTA DE INVENTARIO ===================== -->
-<h2>📋 Inventario actual</h2>
-<table>
-<tr>
-  <th>ID</th>
-  <th>Nombre del artículo</th>
-  <th>Descripción</th>
-  <th>Cantidad</th>
-  <th>Última modificación</th>
-</tr>
+  <!-- Formulario ELIMINAR -->
+  <div id="formEliminar" class="form-box" style="display:none;">
+    <h3>Eliminar artículo del inventario</h3>
+    <form action="eliminar_inventario.php" method="post"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
-<?php
-$sql = "SELECT * FROM inventario ORDER BY fecha_modificacion DESC";
-$res = $conexion->query($sql);
+      <div class="input-group">
+        <label for="idEliminar">ID o nombre del artículo:</label>
+        <input type="text" id="idEliminar" name="idEliminar" required
+               placeholder="Ej. 12 o Guantes">
+      </div>
 
-if($res->num_rows > 0){
-    while($row = $res->fetch_assoc()){
-        echo "<tr>
-                <td>{$row['id_objeto']}</td>
-                <td>{$row['nombre_objeto']}</td>
-                <td>{$row['descripcion']}</td>
-                <td>{$row['cantidad']}</td>
-                <td>{$row['fecha_modificacion']}</td>
-              </tr>";
-    }
-} else {
-    echo "<tr><td colspan='5'>No hay artículos registrados en el inventario</td></tr>";
-}
-?>
-</table>
+      <div class="input-group">
+        <label for="cantidadEliminar">Cantidad a eliminar:</label>
+        <input type="number" id="cantidadEliminar" name="cantidadEliminar"
+               required min="1" placeholder="Ej. 5">
+      </div>
 
-</body>
-</html>
-<?php $conexion->close(); ?>
+      <div class="buttons">
+        <button type="submit" class="btn-eliminar">Eliminar</button>
+        <button type="button" id="btnCancelarEliminar" class="btn-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de inventario -->
+  <div class="tabla-inventario">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre del artículo</th>
+          <th>Descripción</th>
+          <th>Cantidad</th>
+          <th>Última modificación</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="5">No hay artículos registrados en el inventario</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Referencias
+  const btnModificar = document.getElementById("btnModificar");
+  const accionesBox = document.getElementById("accionesInventario");
+  const btnAgregar = document.getElementById("btnAgregar");
+  const btnEliminar = document.getElementById("btnEliminar");
+  const formAgregar = document.getElementById("formAgregar");
+  const formEliminar = document.getElementById("formEliminar");
+  const btnCancelarAccion = document.getElementById("btnCancelarAccion");
+  const btnCancelarAgregar = document.getElementById("btnCancelarAgregar");
+  const btnCancelarEliminar = document.getElementById("btnCancelarEliminar");
+
+  // Mostrar opciones
+  btnModificar.addEventListener("click", () => {
+    accionesBox.style.display = "block";
+    btnModificar.style.display = "none";
+  });
+
+  // Agregar
+  btnAgregar.addEventListener("click", () => {
+    accionesBox.style.display = "none";
+    formAgregar.style.display = "block";
+  });
+
+  // Eliminar
+  btnEliminar.addEventListener("click", () => {
+    accionesBox.style.display = "none";
+    formEliminar.style.display = "block";
+  });
+
+  // Cancelar acción
+  btnCancelarAccion.addEventListener("click", () => {
+    accionesBox.style.display = "none";
+    btnModificar.style.display = "inline-block";
+  });
+
+  // Cancelar agregar
+  btnCancelarAgregar.addEventListener("click", () => {
+    formAgregar.style.display = "none";
+    btnModificar.style.display = "inline-block";
+  });
+
+  // Cancelar eliminar
+  btnCancelarEliminar.addEventListener("click", () => {
+    formEliminar.style.display = "none";
+    btnModificar.style.display = "inline-block";
+  });
+</script>
+
+
+
+
