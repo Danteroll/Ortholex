@@ -102,7 +102,7 @@ if(isset($_POST['guardar'])){
 ?>
 
 <!-- ===================== LISTA DE CITAS ===================== -->
-<h2>📅 Citas registradas</h2>
+<h2>Citas registradas</h2>
 <table>
 <tr>
   <th>ID</th>
