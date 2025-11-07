@@ -82,6 +82,9 @@ tr:hover{background:#f1f5fb}
     <input type="text" name="motivo" placeholder="Ej. revisión, limpieza..." required>
 
     <button class="btn" name="guardar">Guardar cita</button>
+    <a href="form_paciente.php" class="btn">
+      <button class="btn">Nuevo Paciente</button>
+    </a>
 </form>
 
 <?php
