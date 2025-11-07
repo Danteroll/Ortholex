@@ -18,10 +18,19 @@
       <h2>Bienvenida, Doctora</h2>
 
       <!-- Formulario de inicio de sesión -->
-      <form id="loginForm">
+      <form id="loginForm" autocomplete="off">
         <div class="input-group">
           <label for="password">Contraseña</label>
-          <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" required>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Ingresa tu contraseña" 
+            required 
+            autocomplete="off" 
+            autocorrect="off" 
+            autocapitalize="off" 
+            spellcheck="false">
           <p id="error-message" class="error-message"></p>
         </div>
 
@@ -30,27 +39,43 @@
 
       <!-- Enlace para recuperar/cambiar contraseña -->
       <p class="login-footer">
-        ¿Olvidaste tu contraseña? <a href="#" id="showChangePassword">Cambiala aquí</a>
+        ¿Olvidaste tu contraseña? <a href="#" id="showChangePassword">Cámbiala aquí</a>
       </p>
 
       <!-- Formulario oculto de cambio de contraseña -->
       <div id="changePasswordBox" class="change-box" style="display: none;">
         <h3>Cambiar contraseña</h3>
-        <form id="changePasswordForm">
+        <form id="changePasswordForm" autocomplete="off">
           <div class="input-group">
             <label for="securityAnswer">¿Cuál es el nombre de tu hija?</label>
-            <!-- 🔒 Campo oculto tipo contraseña -->
-            <input type="password" id="securityAnswer" name="securityAnswer" placeholder="Escribe tu respuesta" required>
+            <input 
+              type="password" 
+              id="securityAnswer" 
+              name="securityAnswer" 
+              placeholder="Escribe tu respuesta" 
+              required 
+              autocomplete="off" 
+              autocorrect="off" 
+              autocapitalize="off" 
+              spellcheck="false">
           </div>
 
           <div class="input-group">
             <label for="newPass">Nueva contraseña</label>
-            <input type="password" id="newPass" name="newPass" placeholder="Ingresa una nueva contraseña" required>
+            <input 
+              type="password" 
+              id="newPass" 
+              name="newPass" 
+              placeholder="Ingresa una nueva contraseña" 
+              required 
+              autocomplete="off" 
+              autocorrect="off" 
+              autocapitalize="off" 
+              spellcheck="false">
           </div>
 
           <div class="buttons">
             <button type="submit" class="btn-login">Guardar nueva contraseña</button>
-            <!-- 🔙 Nuevo botón de cancelar -->
             <button type="button" class="btn-login" id="cancelChange">Cancelar</button>
           </div>
 
@@ -59,26 +84,33 @@
       </div>
     </div>
   </div>
+
   <script>
-    // Bloquear botones del navegador
+    // === Bloquear botones del navegador ===
     history.pushState(null, document.title, location.href);
     window.addEventListener('popstate', function () {
       history.pushState(null, document.title, location.href);
     });
 
-    // Contraseña y respuesta de seguridad
+    // === Variables de seguridad ===
     let passwordCorrecta = localStorage.getItem("passwordOrtholex") || "1234";
     const respuestaSeguridad = "lexie";
 
-    // Mostrar formulario de cambio de contraseña
+    // === Mostrar formulario de cambio de contraseña ===
     document.getElementById("showChangePassword").addEventListener("click", function(e) {
       e.preventDefault();
+      const answerField = document.getElementById("securityAnswer");
+
       document.getElementById("changePasswordBox").style.display = "block";
       document.getElementById("loginForm").style.display = "none";
       document.querySelector(".login-footer").style.display = "none";
+
+      // Borrar cualquier texto previo del campo
+      answerField.value = "";
+      answerField.setAttribute("autocomplete", "off");
     });
 
-    // Iniciar sesión
+    // === Iniciar sesión ===
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const password = document.getElementById('password').value.trim();
@@ -94,7 +126,7 @@
       }
     });
 
-    // Cambiar contraseña usando pregunta de seguridad
+    // === Cambiar contraseña usando pregunta de seguridad ===
     document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const respuesta = document.getElementById('securityAnswer').value.trim().toLowerCase();
@@ -118,16 +150,21 @@
         msg.style.color = "#c0392b";
       }
 
+      // Limpiar los campos después del intento
       document.getElementById('securityAnswer').value = "";
       document.getElementById('newPass').value = "";
     });
 
-    // 🔙 Cancelar cambio de contraseña y volver al login
+    // === Cancelar cambio de contraseña ===
     document.getElementById('cancelChange').addEventListener('click', function() {
       document.getElementById("changePasswordBox").style.display = "none";
       document.getElementById("loginForm").style.display = "block";
       document.querySelector(".login-footer").style.display = "block";
       document.getElementById('change-message').textContent = "";
+
+      // Limpiar los campos por seguridad
+      document.getElementById('securityAnswer').value = "";
+      document.getElementById('newPass').value = "";
     });
   </script>
 </body>
