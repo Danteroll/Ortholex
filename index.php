@@ -59,7 +59,6 @@
       </div>
     </div>
   </div>
-
   <script>
     // Bloquear botones del navegador
     history.pushState(null, document.title, location.href);
