@@ -76,7 +76,7 @@
     <h1>Historia Clínica – Formulario</h1>
     <p class="hint">Complete todos los campos aplicables. Los campos se activan según las respuestas.</p>
 
-    <form id="historia-form" method="POST" action="guardar_historia.php">
+    <form id="historia-form" method="POST" action="funciones/guardar_historia.php">
       <!-- 1. DATOS GENERALES -->
       <fieldset>
         <legend>Historia Clínica General</legend>

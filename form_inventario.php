@@ -1,3 +1,7 @@
+<?php
+include("conexion.php");
+?>
+
 <div class="inventario-container">
 
   <!-- Encabezado del módulo -->
@@ -19,7 +23,7 @@
   <!-- Formulario AGREGAR -->
   <div id="formAgregar" class="form-box" style="display:none;">
     <h3>Agregar artículo al inventario</h3>
-    <form action="guardar_inventario.php" method="post"
+    <form action="funciones/guardar_inventario.php" method="post"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
       <div class="input-group">
@@ -39,7 +43,7 @@
 
       <div class="input-group">
         <label for="fecha">Fecha de modificación:</label>
-        <input type="date" id="fecha" name="fecha">
+        <input type="date" id="fecha" name="fecha" value="<?php echo date('Y-m-d'); ?>">
       </div>
 
       <div class="buttons">
@@ -52,7 +56,7 @@
   <!-- Formulario ELIMINAR -->
   <div id="formEliminar" class="form-box" style="display:none;">
     <h3>Eliminar artículo del inventario</h3>
-    <form action="eliminar_inventario.php" method="post"
+    <form action="funciones/eliminar_inventario.php" method="post"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
       <div class="input-group">
@@ -87,9 +91,22 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td colspan="5">No hay artículos registrados en el inventario</td>
-        </tr>
+        <?php
+        $res = $conexion->query("SELECT * FROM inventario ORDER BY id_objeto ASC");
+        if ($res->num_rows > 0) {
+          while ($fila = $res->fetch_assoc()) {
+            echo "<tr>
+                    <td>{$fila['id_objeto']}</td>
+                    <td>{$fila['nombre_objeto']}</td>
+                    <td>{$fila['descripcion']}</td>
+                    <td>{$fila['cantidad']}</td>
+                    <td>{$fila['fecha_modificacion']}</td>
+                  </tr>";
+          }
+        } else {
+          echo "<tr><td colspan='5'>No hay artículos registrados en el inventario</td></tr>";
+        }
+        ?>
       </tbody>
     </table>
   </div>
@@ -143,7 +160,3 @@
     btnModificar.style.display = "inline-block";
   });
 </script>
-
-
-
-

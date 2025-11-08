@@ -3,9 +3,9 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background-color: #f3f4f8;
   display: flex;
-  height: 100vh;
-  overflow: hidden;
   flex-direction: column;
+  min-height: 100vh; /* ✅ permite crecimiento vertical */
+  overflow-x: hidden; /* solo bloqueamos scroll horizontal */
 }
 
 /* === Barra superior === */
@@ -35,51 +35,63 @@ body {
 
 /* === Sidebar === */
 .sidebar {
-  width: 240px;
+  width: 220px; /* un poco más estrecho */
   background-color: #a16976;
   color: white;
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-top: calc(20vh + 10px);
+  align-items: center;
+  padding-top: calc(20vh + 5px);
   position: fixed;
   left: 0;
   top: 0;
   z-index: 5;
+  overflow: visible; /* se muestra completo */
+  box-sizing: border-box;
 }
 
+/* === Menú lateral === */
 .menu {
   list-style: none;
   padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 25px;
-  padding-top: 40px;
+  align-items: center;
+  gap: 10px; /* menos separación entre botones */
+  width: 100%;
 }
 
 .menu a {
   text-decoration: none;
   color: inherit;
+  width: 90%;
 }
 
 .menu li {
-  padding: 30px 25px;
-  margin: 10px 15px;
+  width: 100%;
+  padding: 12px 10px; /* 🔹 menos alto */
+  margin: 5px 0;      /* 🔹 menos separación vertical */
   cursor: pointer;
   color: white;
   transition: 0.3s;
-  font-size: 18px;
+  font-size: 16px;     /* 🔹 más compacto */
   text-align: center;
-  font-weight: bold;
-  border-radius: 8px;
+  font-weight: 600;
+  border-radius: 6px;
+  background-color: transparent;
 }
 
 .menu li:hover,
 .menu li.active {
   background-color: #ac5e70;
   color: white;
+  transform: scale(1.03);
 }
+
 
 /* === Contenido principal === */
 .main {
@@ -90,15 +102,21 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  height: calc(80vh - 20px);
-  overflow-y: auto;
+
+  min-height: calc(100vh - 20vh);
+  height: auto;
+
+  overflow-y: auto; /* ✅ solo el contenido derecho scrolleable */
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  background: #f3f4f8;
 }
 
 .content {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  padding:40px;
+  padding: 40px;
   text-align: center;
 }
 
@@ -111,11 +129,12 @@ body {
   color: #4b5563;
   font-size: 16px;
 }
-/* === Bloque de bienvenida fijo (no se mueve con el scroll) === */
+
+/* === Bloque de bienvenida fijo === */
 .bienvenida {
-  position: fixed;               /* ✅ se queda en el mismo lugar */
-  top: 25vh;                     /* debajo de la barra superior */
-  left: 260px;                   /* ajusta según el ancho de tu sidebar */
+  position: fixed;
+  top: 25vh;
+  left: 260px;
   right: 0;
   bottom: 0;
   display: flex;
@@ -126,7 +145,7 @@ body {
   color: #a16976;
   font-family: 'Segoe UI', sans-serif;
   background: #fff;
-  z-index: 1;                    /* encima del fondo, pero debajo del menú */
+  z-index: 1;
   height: calc(100vh - 25vh);
   overflow: hidden;
   border-radius: 10px;
@@ -145,16 +164,6 @@ body {
   color: #555;
 }
 
-/* Para que el contenido general se desplace sin afectar la bienvenida */
-.main {
-  position: relative;
-  margin-left: 240px;
-  margin-top: 22vh;
-  padding: 20px;
-  min-height: 100vh;
-  overflow-y: auto; /* permite scroll sin mover la bienvenida */
-  z-index: 0;
-}
 /* === Contenedor del módulo === */
 .inventario-container {
   background: #fff;
@@ -171,7 +180,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 30px;
 }
 
 .inventario-header h2 {
@@ -206,7 +215,7 @@ button,
 .btn-modificar,
 .btn-accion,
 .btn-agregar {
-  background-color: #a16976;          /* Color base */
+  background-color: #a16976;
   color: white;
   border: none;
   border-radius: 8px;
@@ -218,7 +227,7 @@ button,
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* Hover (al pasar el mouse) */
+/* Hover */
 button:hover,
 .btn-guardar:hover,
 .btn-cancelar:hover,
@@ -226,11 +235,11 @@ button:hover,
 .btn-modificar:hover,
 .btn-accion:hover,
 .btn-agregar:hover {
-  background-color: #8e5562;          /* tono más oscuro */
+  background-color: #8e5562;
   transform: scale(1.05);
 }
 
-/* Active (cuando se presiona) */
+/* Active */
 button:active,
 .btn-guardar:active,
 .btn-cancelar:active,
@@ -241,7 +250,7 @@ button:active,
   transform: scale(0.97);
 }
 
-/* === Ajustes uniformes para los contenedores de botones === */
+/* === Contenedores de botones === */
 .buttons,
 .acciones-buttons {
   display: flex;
@@ -251,7 +260,6 @@ button:active,
   flex-wrap: wrap;
 }
 
-/* === Botones eliminan diferencias de ancho entre formularios === */
 .btn-guardar,
 .btn-cancelar,
 .btn-eliminar,
@@ -262,11 +270,9 @@ button:active,
   text-align: center;
 }
 
-/* === Colores especiales para acciones críticas opcionalmente === */
 .btn-eliminar {
-  background-color: #a16976; /* mismo tono base para unificar */
+  background-color: #a16976;
 }
-
 
 /* === Formularios === */
 .form-box {
@@ -310,6 +316,9 @@ button:active,
 }
 
 /* === Tabla === */
+.tabla-inventario {
+  margin-top: 35px;
+}
 .tabla-inventario table {
   width: 100%;
   border-collapse: collapse;
@@ -317,28 +326,24 @@ button:active,
   overflow: hidden;
   background-color: white;
 }
-
-.tabla-inventario th, .tabla-inventario td {
+.tabla-inventario th,
+.tabla-inventario td {
   border: 1px solid #ddd;
   padding: 12px;
   text-align: center;
 }
-
 .tabla-inventario th {
   background-color: #f1f5f9;
   color: #1d3557;
   font-weight: 600;
 }
-
 .tabla-inventario td {
   color: #4b5563;
 }
-/* === Separación entre botones y tabla del inventario === */
-.tabla-inventario {
-  margin-top: 35px; /* antes era 25px, ahora más espacio */
-}
 
-/* También ajustamos un poco la separación del encabezado */
-.inventario-header {
-  margin-bottom: 30px; /* más espacio entre el botón y el contenido */
+/* === Responsividad === */
+@media (max-height: 700px) {
+  .main {
+    overflow-y: scroll;
+  }
 }

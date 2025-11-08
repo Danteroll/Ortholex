@@ -1,5 +1,5 @@
 <?php
-include("conexion.php");
+include("../conexion.php");
 
 // ===== Validar campo obligatorio =====
 if (empty($_POST['nombre_paciente'])) {
