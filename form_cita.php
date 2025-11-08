@@ -55,6 +55,11 @@ th{
   color:#1d3557;
 }
 tr:hover{background:#f1f5fb}
+
+div.cita_NP {
+    margin-top: 20px;
+    margin-right: 20px;
+}
 </style>
 </head>
 <body>
@@ -85,7 +90,7 @@ tr:hover{background:#f1f5fb}
 
 </form>
 
-<div>
+<div class="cita_NP">
   <a class="btn" href="form_paciente.php" role="button">Nuevo paciente</a>
 </div>
 
