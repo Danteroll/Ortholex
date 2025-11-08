@@ -57,9 +57,9 @@ th{
 tr:hover{background:#f1f5fb}
 
 div.cita_NP {
-  block-size: auto;
+  
     margin-top: -10px;  
-    margin-right: 300px; ; 
+    margin-right: 67%; ; 
 }
 </style>
 </head>
