@@ -89,12 +89,11 @@ div.cita_NP {
 
     <button class="btn" name="guardar">Guardar cita</button>
 
-  <div class="cita_NP">
-     <a class="btn" href="form_paciente.php" role="button">Nuevo paciente</a>
-</div>
 </form>
 
-
+<div class="cita_NP">
+  <a class="btn" href="form_paciente.php" role="button">Nuevo paciente</a>
+</div>
 
 <?php
 // === GUARDAR CITA ===
