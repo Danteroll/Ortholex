@@ -60,8 +60,18 @@ div.cita_NP {
   
     margin-top: -10px;  
     margin-right: 67%; 
-    text-decoration: none; 
-    font-family:'Segoe UI' ,sans-serif;
+    
+}
+.btn2{
+  margin-top:15px;
+  background-color:#10b981;
+  color:white;
+  border:none;
+  padding:8px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  text-decoration: none; 
+  font-family:'Segoe UI' ,sans-serif;
 }
 </style>
 </head>
@@ -94,7 +104,7 @@ div.cita_NP {
 </form>
 
 <div class="cita_NP">
-  <a class="btn" href="form_paciente.php" role="button">Nuevo paciente</a>
+  <a class="btn2" href="form_paciente.php" role="button">Nuevo paciente</a>
 </div>
 
 <?php
