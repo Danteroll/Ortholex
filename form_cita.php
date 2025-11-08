@@ -59,7 +59,9 @@ tr:hover{background:#f1f5fb}
 div.cita_NP {
   
     margin-top: -10px;  
-    margin-right: 67%; ; 
+    margin-right: 67%; 
+    text-decoration: none; 
+    font-family:'Segoe UI' ,sans-serif;
 }
 </style>
 </head>
