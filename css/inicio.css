@@ -62,7 +62,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 25px; /* 🔹 más separación entre botones */
   width: 100%;
 }
 

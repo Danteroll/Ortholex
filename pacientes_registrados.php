@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['eliminar_paciente'])) 
     $id = intval($_POST['paciente_id']);
     if ($id > 0) {
         $conexion->query("DELETE FROM pacientes WHERE id_paciente = $id");
-        echo "<script>alert('Paciente eliminado correctamente.'); window.location='inicio.php?page=pacientes';</script>";
+        echo "<script>alert('Paciente eliminado correctamente.'); window.location='inicio.php';</script>";
         exit;
     } else {
         echo "<script>alert('Seleccione un paciente válido.');</script>";
