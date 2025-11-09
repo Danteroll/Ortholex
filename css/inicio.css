@@ -61,29 +61,32 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px; /* menos separación entre botones */
+  gap: 25px; /* 🔹 más separación entre botones */
   width: 100%;
 }
+
 
 .menu a {
   text-decoration: none;
   color: inherit;
-  width: 90%;
+  he: 90%;
 }
 
 .menu li {
-  width: 100%;
-  padding: 12px 10px; /* 🔹 menos alto */
-  margin: 5px 0;      /* 🔹 menos separación vertical */
+  width: 90%; /* 🔹 más ancho y centrado */
+  padding: 18px 15px; /* 🔹 más alto */
+  margin: 15px 0; /* 🔹 más separación entre botones */
   cursor: pointer;
   color: white;
   transition: 0.3s;
-  font-size: 16px;     /* 🔹 más compacto */
+  font-size: 18px; /* 🔹 texto más grande */
   text-align: center;
-  font-weight: 600;
-  border-radius: 6px;
+  font-weight: 700; /* 🔹 más negrita */
+  border-radius: 10px; /* 🔹 bordes más suaves */
   background-color: transparent;
 }
+
+
 
 .menu li:hover,
 .menu li.active {
