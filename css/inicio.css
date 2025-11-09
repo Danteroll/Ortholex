@@ -133,39 +133,29 @@ body {
   font-size: 16px;
 }
 
-/* === Bloque de bienvenida fijo === */
-.bienvenida {
-  position: fixed;
-  top: 25vh;
-  left: 260px;
-  right: 0;
-  bottom: 0;
+/* === Bienvenida centrada en el área principal === */
+.bienvenida-centro {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  height: 70vh; /* centra verticalmente dentro del área blanca */
   text-align: center;
-  color: #a16976;
-  font-family: 'Segoe UI', sans-serif;
-  background: #fff;
-  z-index: 1;
-  height: calc(100vh - 25vh);
-  overflow: hidden;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.bienvenida h1 {
+.bienvenida-centro h1 {
   font-size: 28px;
   color: #8e5562;
   font-weight: bold;
   margin-bottom: 10px;
 }
 
-.bienvenida p {
+.bienvenida-centro p {
   font-size: 16px;
   color: #555;
 }
+
+
 
 /* === Contenedor del módulo === */
 .inventario-container {

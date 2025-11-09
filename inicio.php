@@ -40,7 +40,6 @@ if (!in_array($page, $pages)) $page = 'principal';
       <li class="<?php echo ($page=='expediente') ? 'active' : ''; ?>"><a href="?page=expediente">Expedientes</a></li>
       <li class="<?php echo ($page=='inventario') ? 'active' : ''; ?>"><a href="?page=inventario">Inventario</a></li>
       <li class="<?php echo ($page=='pago') ? 'active' : ''; ?>"><a href="?page=pago">Pagos</a></li>
-      <li class="<?php echo ($page=='pacientes') ? 'active' : ''; ?>"><a href="?page=pacientes">Pacientes</a></li>
       <li><a href="#" id="logout">Salir</a></li>
     </ul>
   </div>
@@ -50,20 +49,21 @@ if (!in_array($page, $pages)) $page = 'principal';
     <div class="content">
       <?php
         if ($page == 'principal') {
-          echo '<div class="bienvenida">';
-          echo '<h1>Bienvenida al Sistema DEADBJ</h1>';
-          echo '<p>Seleccione una opción del menú lateral para comenzar.</p>';
+          echo '<div class="bienvenida-centro">';
+          echo '  <h1>Bienvenida al Sistema DEADBJ</h1>';
+          echo '  <p>Seleccione una opción del menú lateral para comenzar.</p>';
           echo '</div>';
         } else {
           switch ($page) {
-            case 'citas': include("form_cita.php"); break;
-            case 'expediente': include("form_expediente.php"); break;
-            case 'inventario': include("form_inventario.php"); break;
-            case 'pago': include("form_pago.php"); break;
-            case 'pacientes': include("pacientes_registrados.php"); break;
+            case "citas": include("form_cita.php"); break;
+            case "expediente": include("pacientes_registrados.php"); break;
+            case "inventario": include("form_inventario.php"); break;
+            case "pago": include("form_pago.php"); break;
           }
         }
       ?>
+
+
     </div>
   </div>
 
