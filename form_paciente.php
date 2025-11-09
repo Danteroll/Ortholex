@@ -207,7 +207,7 @@
     </section>
 
 <div class="buttons">
-  <button type="submit" class="btn-guardar">Guardar Historia</button>
+  <button type="submit" class="btn-guardar">Guardar Historial</button>
   <button type="button" class="btn-cancelar" onclick="window.history.back()">Cancelar</button>
 </div>
 

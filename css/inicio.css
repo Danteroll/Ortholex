@@ -35,7 +35,7 @@ body {
 
 /* === Sidebar === */
 .sidebar {
-  width: 220px; /* un poco más estrecho */
+  width: 220px;
   background-color: #a16976;
   color: white;
   min-height: 100vh;
@@ -44,14 +44,15 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: calc(20vh + 5px);
+  padding-top: calc(20vh + 40px); /* 🔹 Más espacio debajo de la franja superior */
   position: fixed;
   left: 0;
   top: 0;
   z-index: 5;
-  overflow: visible; /* se muestra completo */
+  overflow: visible;
   box-sizing: border-box;
 }
+
 
 /* === Menú lateral === */
 .menu {
