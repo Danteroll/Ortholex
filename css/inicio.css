@@ -72,28 +72,28 @@ body {
   he: 90%;
 }
 
+/* === Botones del menú lateral (sidebar) === */
 .menu li {
-  width: 90%; /* 🔹 más ancho y centrado */
-  padding: 18px 15px; /* 🔹 más alto */
-  margin: 15px 0; /* 🔹 más separación entre botones */
+  width: 90%;                /* Botones más anchos */
+  padding: 20px 15px;        /* Más altos */
+  margin: 18px 0;            /* Mayor separación entre ellos */
   cursor: pointer;
   color: white;
   transition: 0.3s;
-  font-size: 18px; /* 🔹 texto más grande */
+  font-size: 19px;           /* Texto más grande */
   text-align: center;
-  font-weight: 700; /* 🔹 más negrita */
-  border-radius: 10px; /* 🔹 bordes más suaves */
-  background-color: transparent;
+  font-weight: 700;          /* Negrita */
+  border-radius: 10px;
+  background-color: #b17685; /* Fondo visible */
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25); /* Sombra suave */
 }
-
-
 
 .menu li:hover,
 .menu li.active {
-  background-color: #ac5e70;
-  color: white;
-  transform: scale(1.03);
+  background-color: #8e5562; /* Color más oscuro al pasar el mouse */
+  transform: scale(1.05);    /* Ligero aumento visual */
 }
+
 
 
 /* === Contenido principal === */
