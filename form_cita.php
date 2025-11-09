@@ -22,14 +22,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['eliminar_cita'])) {
 
 // 📝 Registrar nueva cita
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_cita'])) {
-    $paciente = $_POST['paciente'];
+    $id_paciente = intval($_POST['id_paciente']);
     $fecha = $_POST['fecha'];
     $hora = $_POST['hora'];
     $motivo = $_POST['motivo'];
 
-    $stmt = $conexion->prepare("INSERT INTO citas (paciente, fecha, hora, motivo, fecha_registro)
-                                VALUES (?, ?, ?, ?, NOW())");
-    $stmt->bind_param("ssss", $paciente, $fecha, $hora, $motivo);
+    $stmt = $conexion->prepare("INSERT INTO citas (id_paciente, fecha, hora, motivo, estado) VALUES (?, ?, ?, ?, 'pendiente')");
+    $stmt->bind_param("isss", $id_paciente, $fecha, $hora, $motivo);
 
     if ($stmt->execute()) {
         echo "<script>alert('Cita registrada correctamente.'); window.location='inicio.php?page=citas';</script>";
@@ -39,22 +38,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_cita'])) {
     $stmt->close();
 }
 
-// 📋 Obtener citas registradas
-$res = $conexion->query("SELECT * FROM citas ORDER BY fecha DESC, hora ASC");
-$citas = [];
-if ($res && $res->num_rows > 0) {
-    while ($row = $res->fetch_assoc()) {
-        $citas[] = [
-            "id" => $row['id_cita'],
-            "paciente" => $row['paciente'],
-            "fecha" => $row['fecha'],
-            "hora" => $row['hora'],
-            "motivo" => $row['motivo'],
-            "title" => $row['paciente'] . " - " . $row['motivo'],
-            "start" => $row['fecha'] . "T" . $row['hora']
-        ];
-    }
-}
 ?>
 
 <div class="inventario-container">
