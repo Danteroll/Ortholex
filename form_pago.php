@@ -27,7 +27,7 @@ $res = $conexion->query("SELECT * FROM pagos ORDER BY fecha_pago DESC");
 
 <div class="inventario-container">
   <div class="inventario-header">
-    <h2>Gestión de Pagos</h2>
+    <h2>Historial de Pagos</h2>
     <button class="btn-modificar" onclick="togglePago()">Nuevo pago</button>
   </div>
 
