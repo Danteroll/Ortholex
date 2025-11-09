@@ -76,7 +76,7 @@ body {
 .menu li {
   width: 90%;                /* Botones más anchos */
   padding: 20px 15px;        /* Más altos */
-  margin: 18px 0;            /* Mayor separación entre ellos */
+  margin: 10px 0;            /* Mayor separación entre ellos */
   cursor: pointer;
   color: white;
   transition: 0.3s;
