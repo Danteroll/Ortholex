@@ -8,11 +8,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $monto = $_POST['monto'];
     $fecha_pago = $_POST['fecha_pago'];
     $metodo = $_POST['metodo'];
-    $observaciones = $_POST['observaciones'];
 
-    $stmt = $conexion->prepare("INSERT INTO pagos (paciente, tratamiento, monto, fecha_pago, metodo, observaciones, fecha_registro)
-                                VALUES (?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->bind_param("ssdsss", $paciente, $tratamiento, $monto, $fecha_pago, $metodo, $observaciones);
+    $stmt = $conexion->prepare("INSERT INTO pagos (paciente, tratamiento, monto, fecha_pago, metodo, fecha_registro)
+                                VALUES (?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("ssdss", $paciente, $tratamiento, $monto, $fecha_pago, $metodo);
 
     if ($stmt->execute()) {
         echo "<script>alert('Pago registrado correctamente.'); window.location='inicio.php?page=pago';</script>";
@@ -67,11 +66,6 @@ $res = $conexion->query("SELECT * FROM pagos ORDER BY fecha_pago DESC");
         </select>
       </div>
 
-      <div class="input-group">
-        <label for="observaciones">Observaciones:</label>
-        <textarea id="observaciones" name="observaciones" rows="3"></textarea>
-      </div>
-
       <div class="buttons">
         <button type="submit" class="btn-guardar">Guardar</button>
         <button type="button" class="btn-cancelar" onclick="togglePago()">Cancelar</button>
@@ -89,24 +83,22 @@ $res = $conexion->query("SELECT * FROM pagos ORDER BY fecha_pago DESC");
         <th>Monto</th>
         <th>Fecha de pago</th>
         <th>Método</th>
-        <th>Observaciones</th>
       </tr>
 
       <?php if ($res && $res->num_rows > 0): ?>
         <?php while ($row = $res->fetch_assoc()): ?>
           <tr>
             <td><?php echo $row['id_pago']; ?></td>
-            <td><?php echo $row['paciente']; ?></td>
-            <td><?php echo $row['tratamiento']; ?></td>
+            <td><?php echo htmlspecialchars($row['paciente']); ?></td>
+            <td><?php echo htmlspecialchars($row['tratamiento']); ?></td>
             <td>$<?php echo number_format($row['monto'], 2); ?></td>
-            <td><?php echo $row['fecha_pago']; ?></td>
-            <td><?php echo $row['metodo']; ?></td>
-            <td><?php echo $row['observaciones']; ?></td>
+            <td><?php echo htmlspecialchars($row['fecha_pago']); ?></td>
+            <td><?php echo htmlspecialchars($row['metodo']); ?></td>
           </tr>
         <?php endwhile; ?>
       <?php else: ?>
         <tr>
-          <td colspan="7" style="text-align:center;padding:20px;color:#555;">
+          <td colspan="6" style="text-align:center;padding:20px;color:#555;">
             No hay pagos registrados.
           </td>
         </tr>
@@ -122,5 +114,26 @@ function togglePago() {
 }
 </script>
 
-<?php $conexion->close(); ?>
+<style>
+/* --- Asegura que el select se vea igual que los inputs del sistema Ortholex --- */
+.input-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+  background-color: #fff;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  appearance: none; /* quita la flecha predeterminada del sistema */
+}
 
+.input-group select:focus {
+  border-color: #a16976;
+  box-shadow: 0 0 4px rgba(161,105,118,0.4);
+  outline: none;
+}
+</style>
+
+<?php $conexion->close(); ?>
