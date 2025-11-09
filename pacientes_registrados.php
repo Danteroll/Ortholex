@@ -8,7 +8,7 @@ $res = $conexion->query("SELECT * FROM pacientes ORDER BY fecha_registro DESC");
   <div class="inventario-header">
     <h2>Pacientes Registrados</h2>
     <a href="form_paciente.php">
-      <button class="btn-modificar">+ Nuevo paciente</button>
+      <button class="btn-modificar">Nuevo paciente</button>
     </a>
   </div>
 

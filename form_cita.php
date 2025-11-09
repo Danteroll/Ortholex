@@ -1,164 +1,116 @@
-<?php include("conexion.php"); ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Nueva Cita — Ortholex</title>
-<style>
-body{
-  font-family:'Segoe UI',sans-serif;
-  background:#f8fbff;
-  margin:0;
-  padding:40px;
-  color:#1d3557;
-}
-h2{color:#1d3557}
-form{
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-  max-width:450px;
-  box-shadow:0 3px 6px rgba(0,0,0,0.1);
-  margin-bottom:40px;
-}
-label{display:block;margin-top:10px;font-weight:600}
-input,select{
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:1px solid #ccc;
-  border-radius:6px;
-}
-.btn{
-  margin-top:15px;
-  background-color:#3b82f6;
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-}
-.btn:hover{background-color:#2563eb}
-table{
-  border-collapse:collapse;
-  width:100%;
-  background:#fff;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-th,td{
-  border:1px solid #ddd;
-  padding:10px;
-  text-align:center;
-}
-th{
-  background:#e8f1ff;
-  color:#1d3557;
-}
-tr:hover{background:#f1f5fb}
-
-div.cita_NP {
-  
-    margin-top: -10px;  
-    margin-right: 67%; 
-    
-}
-.btn2{
-  margin-top:15px;
-  background-color:#10b981;
-  color:white;
-  border:none;
-  padding:8px 14px;
-  border-radius:6px;
-  cursor:pointer;
-  text-decoration: none; 
-  font-family:'Segoe UI' ,sans-serif;
-}
-</style>
-</head>
-<body>
-
-<h2>Registrar nueva cita</h2>
-<form method="POST" action="">
-    <label>Paciente:</label>
-    <select name="id_paciente" required>
-        <option value="">Seleccione...</option>
-        <?php
-        $res = $conexion->query("SELECT * FROM pacientes");
-        while($p = $res->fetch_assoc()){
-            echo "<option value='{$p['id_paciente']}'>{$p['nombre']}</option>";
-        }
-        ?>
-    </select>
-
-    <label>Fecha:</label>
-    <input type="date" name="fecha" required>
-
-    <label>Hora:</label>
-    <input type="time" name="hora" required>
-
-    <label>Motivo:</label>
-    <input type="text" name="motivo" placeholder="Ej. revisión, limpieza..." required>
-
-    <button class="btn" name="guardar">Guardar cita</button>
-
-</form>
-
-<div class="cita_NP">
-  <a class="btn2" href="form_paciente.php" role="button">Nuevo paciente</a>
-</div>
-
 <?php
-// === GUARDAR CITA ===
-if(isset($_POST['guardar'])){
-    $id_p = $_POST['id_paciente'];
+include("conexion.php");
+
+// Registrar nueva cita
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $paciente = $_POST['paciente'];
     $fecha = $_POST['fecha'];
     $hora = $_POST['hora'];
     $motivo = $_POST['motivo'];
+    $observaciones = $_POST['observaciones'];
 
-    $stmt = $conexion->prepare("INSERT INTO citas (id_paciente, fecha, hora, motivo) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $id_p, $fecha, $hora, $motivo);
-    $stmt->execute();
+    $stmt = $conexion->prepare("INSERT INTO citas (paciente, fecha, hora, motivo, observaciones, fecha_registro)
+                                VALUES (?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("sssss", $paciente, $fecha, $hora, $motivo, $observaciones);
 
-    echo "<script>alert('Cita guardada correctamente');window.location='index.php?page=citas';</script>";
-}
-?>
-
-<!-- ===================== LISTA DE CITAS ===================== -->
-<h2>Citas registradas</h2>
-<table>
-<tr>
-  <th>ID</th>
-  <th>Paciente</th>
-  <th>Fecha</th>
-  <th>Hora</th>
-  <th>Motivo</th>
-  <th>Estado</th>
-</tr>
-
-<?php
-$sql = "SELECT c.id_cita, p.nombre AS paciente, c.fecha, c.hora, c.motivo, c.estado 
-        FROM citas c 
-        JOIN pacientes p ON c.id_paciente = p.id_paciente 
-        ORDER BY c.fecha DESC, c.hora ASC";
-$res = $conexion->query($sql);
-
-if($res->num_rows > 0){
-    while($row = $res->fetch_assoc()){
-        echo "<tr>
-                <td>{$row['id_cita']}</td>
-                <td>{$row['paciente']}</td>
-                <td>{$row['fecha']}</td>
-                <td>{$row['hora']}</td>
-                <td>{$row['motivo']}</td>
-                <td>{$row['estado']}</td>
-              </tr>";
+    if ($stmt->execute()) {
+        echo "<script>alert('Cita registrada correctamente.'); window.location='inicio.php?page=citas';</script>";
+    } else {
+        echo "<script>alert('Error al registrar la cita.');</script>";
     }
-} else {
-    echo "<tr><td colspan='6'>No hay citas registradas</td></tr>";
+    $stmt->close();
 }
-?>
-</table>
 
-</body>
-</html>
+// Obtener citas registradas
+$res = $conexion->query("SELECT * FROM citas ORDER BY fecha DESC, hora ASC");
+?>
+
+<div class="inventario-container">
+  <div class="inventario-header">
+    <h2>Gestión de Citas</h2>
+    <div style="display:flex;gap:10px;">
+      <a href="form_paciente.php"><button class="btn-modificar">Nuevo paciente</button></a>
+      <button class="btn-modificar" onclick="document.getElementById('nuevaCita').style.display='block'">Nueva cita</button>
+    </div>
+  </div>
+
+  <!-- 🗓️ Formulario de nueva cita -->
+  <div class="form-box" id="nuevaCita" style="display:none;">
+    <form method="POST">
+      <h3>Registrar nueva cita</h3>
+      <div class="input-group">
+        <label for="paciente">Nombre del paciente:</label>
+        <input type="text" id="paciente" name="paciente" required>
+      </div>
+
+      <div class="input-group">
+        <label for="fecha">Fecha de la cita:</label>
+        <input type="date" id="fecha" name="fecha" required>
+      </div>
+
+      <div class="input-group">
+        <label for="hora">Hora:</label>
+        <input type="time" id="hora" name="hora" required>
+      </div>
+
+      <div class="input-group">
+        <label for="motivo">Motivo:</label>
+        <input type="text" id="motivo" name="motivo" required>
+      </div>
+
+      <div class="input-group">
+        <label for="observaciones">Observaciones:</label>
+        <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+      </div>
+
+      <div class="buttons">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cancelar" onclick="document.getElementById('nuevaCita').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- 📋 Tabla de citas registradas -->
+  <div class="tabla-inventario">
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Motivo</th>
+        <th>Observaciones</th>
+      </tr>
+
+      <?php if ($res && $res->num_rows > 0): ?>
+        <?php while ($row = $res->fetch_assoc()): ?>
+          <tr>
+            <td><?php echo $row['id_cita']; ?></td>
+            <td><?php echo $row['paciente']; ?></td>
+            <td><?php echo $row['fecha']; ?></td>
+            <td><?php echo $row['hora']; ?></td>
+            <td><?php echo $row['motivo']; ?></td>
+            <td><?php echo $row['observaciones']; ?></td>
+          </tr>
+        <?php endwhile; ?>
+      <?php else: ?>
+        <tr>
+          <td colspan="6" style="text-align:center;padding:20px;color:#555;">
+            No hay citas registradas.
+          </td>
+        </tr>
+      <?php endif; ?>
+    </table>
+  </div>
+</div>
+
+<script>
+// Mostrar/ocultar formulario de nueva cita
+function toggleForm() {
+  const form = document.getElementById('nuevaCita');
+  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+}
+</script>
+
 <?php $conexion->close(); ?>
+

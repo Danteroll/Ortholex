@@ -59,6 +59,7 @@ if (!in_array($page, $pages)) $page = 'principal';
             case "expediente": include("pacientes_registrados.php"); break;
             case "inventario": include("form_inventario.php"); break;
             case "pago": include("form_pago.php"); break;
+            case 'expediente': include("form_historia_clinica.php"); break;
           }
         }
       ?>
