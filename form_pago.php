@@ -148,7 +148,7 @@ if ($citas->num_rows > 0) {
 
     <div class="input-group">
       <label>Método de pago:</label>
-      <select id="metodo" name="metodo" required>
+      <select id="metodo" name="metodo_pago" required>
         <option value="">Seleccione...</option>
         <option value="Efectivo">Efectivo</option>
         <option value="Tarjeta">Tarjeta</option>
