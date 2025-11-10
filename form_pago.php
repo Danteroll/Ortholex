@@ -82,6 +82,7 @@ $res = $conexion->query("
     <li><a href="form_inventario.php">Inventario</a></li>
     <li><a href="form_pago.php" class="active">Pagos</a></li>
     <li><a href="tratamientos.php">Tratamientos</a></li>
+    <li><a href="index.php">Salir</a></li>
   </ul>
 </div>
 

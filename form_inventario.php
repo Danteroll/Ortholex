@@ -24,6 +24,7 @@ date_default_timezone_set('America/Mexico_City');
       <li><a href="form_inventario.php" class="active">Inventario</a></li>
       <li><a href="form_pago.php">Pagos</a></li>
       <li><a href="tratamientos.php">Tratamientos</a></li>
+      <li><a href="index.php">Salir</a></li>
     </ul>
   </div>
 
