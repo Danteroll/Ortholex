@@ -17,7 +17,6 @@
     <ul class="menu">
       <li><a href="form_cita.php">Citas</a></li>
       <li><a href="pacientes.php" class="active">Pacientes</a></li>
-      <li><a href="form_expediente.php">Expedientes</a></li>
       <li><a href="form_inventario.php">Inventario</a></li>
       <li><a href="form_pago.php">Pagos</a></li>
       <li><a href="tratamientos.php">Tratamientos</a></li>

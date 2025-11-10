@@ -78,7 +78,6 @@ $res = $conexion->query("
   <ul class="menu">
     <li><a href="form_cita.php">Citas</a></li>
     <li><a href="pacientes.php">Pacientes</a></li>
-    <li><a href="form_expediente.php">Expedientes</a></li>
     <li><a href="form_inventario.php">Inventario</a></li>
     <li><a href="form_pago.php" class="active">Pagos</a></li>
     <li><a href="tratamientos.php">Tratamientos</a></li>
@@ -234,13 +233,7 @@ $res = $conexion->query("
                 <td>$<?= number_format($row['monto'], 2) ?></td>
                 <td><?= date('d-m-Y', strtotime($row['fecha_pago'])) ?></td>
                 <td><?= htmlspecialchars($row['metodo_pago']) ?></td>
-                <td>
-                  <?php if (!empty($row['id_cita'])): ?>
-                    <a href="form_cita.php?id=<?= $row['id_cita'] ?>">#<?= $row['id_cita'] ?></a>
-                  <?php else: ?>
-                    —
-                  <?php endif; ?>
-                </td>
+                <td><?= !empty($row['id_cita']) ? '#'.$row['id_cita'] : '—' ?></td>
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
@@ -328,5 +321,6 @@ table th, table td { text-align: center; }
 <?php $conexion->close(); ?>
 </body>
 </html>
+
 
 

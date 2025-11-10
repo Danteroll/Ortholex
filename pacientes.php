@@ -2,118 +2,71 @@
 include("conexion.php");
 date_default_timezone_set('America/Mexico_City');
 
-/* ===================== ACCIONES POST ===================== */
+/* ===================== ACCIONES ===================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $accion = $_POST['accion'] ?? '';
 
-  // Guardar nuevo paciente
-  if ($accion === 'guardar_paciente') {
-    $nombre = trim($_POST['nombre']);
-    $fecha_nacimiento = $_POST['fecha_nacimiento'] ?: null;
-    $celular = trim($_POST['celular'] ?? '');
-    $estado_civil = trim($_POST['estado_civil'] ?? '');
-    $nacionalidad = trim($_POST['nacionalidad'] ?? '');
-    $domicilio = trim($_POST['domicilio'] ?? '');
-    $profesion = trim($_POST['profesion'] ?? '');
-    $contacto_emergencia = trim($_POST['contacto_emergencia'] ?? '');
-    $telefono_emergencia = trim($_POST['telefono_emergencia'] ?? '');
+  // Guardar expediente
+  if ($accion === 'guardar_expediente') {
+    $id_p = intval($_POST['id_paciente']);
+    $desc = $_POST['descripcion'];
+    $fecha_actual = date('Y-m-d H:i:s');
 
-    $stmt = $conexion->prepare("
-      INSERT INTO pacientes
-      (nombre, fecha_nacimiento, celular, estado_civil, nacionalidad, domicilio, profesion, contacto_emergencia, telefono_emergencia, fecha_registro)
-      VALUES (?,?,?,?,?,?,?,?,?, NOW())
-    ");
-    $stmt->bind_param("sssssssss", $nombre, $fecha_nacimiento, $celular, $estado_civil, $nacionalidad, $domicilio, $profesion, $contacto_emergencia, $telefono_emergencia);
-    $ok = $stmt->execute();
+    if (!is_dir("uploads")) mkdir("uploads");
+    $nombreArchivo = $_FILES['archivo']['name'];
+    $ruta = "uploads/" . time() . "_" . basename($nombreArchivo);
+    move_uploaded_file($_FILES['archivo']['tmp_name'], $ruta);
+
+    $stmt = $conexion->prepare("INSERT INTO expedientes (id_paciente, descripcion, archivo, fecha_subida) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("isss", $id_p, $desc, $ruta, $fecha_actual);
+    $stmt->execute();
     $stmt->close();
 
-    echo "<script>alert('".($ok?'Paciente registrado':'Error al registrar paciente')."'); window.location='pacientes.php';</script>";
+    echo "<script>alert('Expediente guardado correctamente'); window.location='pacientes.php?id_paciente=$id_p';</script>";
     exit;
   }
 
-  // Guardar historia clínica (autorreporte)
-  if ($accion === 'guardar_historia') {
-    $id_paciente = intval($_POST['id_paciente']);
-    $lugar = trim($_POST['lugar'] ?? '');
-    $fecha = $_POST['fecha'] ?: date('Y-m-d');
-    $motivo_consulta = trim($_POST['motivo_consulta'] ?? '');
-
-    // Campos básicos (extiende con tus columnas reales)
-    $stmt = $conexion->prepare("
-      INSERT INTO historia_clinica (id_paciente, lugar, fecha, motivo_consulta, fecha_registro)
-      VALUES (?,?,?,?, NOW())
-    ");
-    $stmt->bind_param("isss", $id_paciente, $lugar, $fecha, $motivo_consulta);
-    $ok = $stmt->execute();
-    $stmt->close();
-
-    echo "<script>alert('".($ok?'Historia registrada':'Error al registrar historia')."'); window.location='pacientes.php?id_paciente=".$id_paciente."';</script>";
-    exit;
+  // 🗑️ Eliminar paciente
+  if ($accion === 'eliminar_paciente') {
+    $id_p = intval($_POST['id_paciente']);
+    if ($id_p > 0) {
+      $archivos = $conexion->query("SELECT archivo FROM expedientes WHERE id_paciente=$id_p");
+      while ($a = $archivos->fetch_assoc()) {
+        if (file_exists($a['archivo'])) unlink($a['archivo']);
+      }
+      $conexion->query("DELETE FROM historia_clinica WHERE id_paciente=$id_p");
+      $conexion->query("DELETE FROM citas WHERE id_paciente=$id_p");
+      $conexion->query("DELETE FROM pagos WHERE id_paciente=$id_p");
+      $conexion->query("DELETE FROM expedientes WHERE id_paciente=$id_p");
+      $conexion->query("DELETE FROM pacientes WHERE id_paciente=$id_p");
+      echo "<script>alert('Paciente eliminado correctamente'); window.location='pacientes.php';</script>";
+      exit;
+    }
   }
 
-  // Guardar exploración bucal (requiere id_historia)
-  if ($accion === 'guardar_exploracion') {
-    $id_historia = intval($_POST['id_historia']);
-    // === Campos de tu formulario (ajusta nombres si difieren en tu tabla) ===
-    $dolor_donde = trim($_POST['dolor_donde'] ?? '');
-    $calma = trim($_POST['calma'] ?? 'No');
-    $con_que = trim($_POST['con_que'] ?? '');
-    $ultima_visita = $_POST['ultima_visita'] ?: null;
-    $sangrado_encias = trim($_POST['sangrado_encias'] ?? 'No');
-    $sangrado_cuando = trim($_POST['sangrado_cuando'] ?? '');
-    $movilidad = trim($_POST['movilidad'] ?? 'No');
-    $indice_placa = trim($_POST['indice_placa'] ?? '');
-    $higiene = trim($_POST['higiene'] ?? 'Regular');
-    $manchas = trim($_POST['manchas'] ?? 'No');
-    $manchas_desc = trim($_POST['manchas_desc'] ?? '');
-    $golpe = trim($_POST['golpe'] ?? 'No');
-    $fractura = trim($_POST['fractura'] ?? 'No');
-    $cual_diente = trim($_POST['cual_diente'] ?? '');
-    $tratamiento_diente = trim($_POST['tratamiento_diente'] ?? '');
-    $dificultad_abrir = trim($_POST['dificultad_abrir'] ?? '');
-    $sarro = trim($_POST['sarro'] ?? 'No');
-    $periodontal = trim($_POST['periodontal'] ?? 'No');
-    $estado_bucal = trim($_POST['estado_bucal'] ?? '');
-    $diagnostico = trim($_POST['diagnostico'] ?? '');
-    $plan_tratamiento = trim($_POST['plan_tratamiento'] ?? '');
-    $observaciones = trim($_POST['observaciones'] ?? '');
-    $firma_dentista = trim($_POST['firma_dentista'] ?? '');
-
-    $stmt = $conexion->prepare("
-      INSERT INTO exploracion_bucal
-      (id_historia, dolor_donde, calma, con_que, ultima_visita, sangrado_encias, sangrado_cuando, movilidad, indice_placa, higiene, manchas, manchas_desc, golpe, fractura, cual_diente, tratamiento_diente, dificultad_abrir, sarro, periodontal, estado_bucal, diagnostico, plan_tratamiento, observaciones, firma_dentista, fecha_registro)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, NOW())
-    ");
-    $stmt->bind_param(
-      "isssssssssssssssssssssss",
-      $id_historia, $dolor_donde, $calma, $con_que, $ultima_visita, $sangrado_encias, $sangrado_cuando, $movilidad, $indice_placa, $higiene, $manchas, $manchas_desc, $golpe, $fractura, $cual_diente, $tratamiento_diente, $dificultad_abrir, $sarro, $periodontal, $estado_bucal, $diagnostico, $plan_tratamiento, $observaciones, $firma_dentista
-    );
-    $ok = $stmt->execute();
-    $stmt->close();
-
-    // Obtener id_paciente para regresar a su panel
-    $q = $conexion->prepare("SELECT id_paciente FROM historia_clinica WHERE id_historia=?");
-    $q->bind_param("i", $id_historia);
-    $q->execute();
-    $r = $q->get_result()->fetch_assoc();
-    $q->close();
-
-    $id_paciente = $r['id_paciente'] ?? 0;
-
-    echo "<script>alert('".($ok?'Exploración guardada':'Error al guardar exploración')."'); window.location='pacientes.php?id_paciente=".$id_paciente."';</script>";
-    exit;
+  // 🗑️ Eliminar expediente individual
+  if ($accion === 'eliminar_expediente') {
+    $id_exp = intval($_POST['id_expediente']);
+    $res = $conexion->query("SELECT archivo, id_paciente FROM expedientes WHERE id_expediente=$id_exp");
+    if ($res && $r = $res->fetch_assoc()) {
+      if (file_exists($r['archivo'])) unlink($r['archivo']);
+      $conexion->query("DELETE FROM expedientes WHERE id_expediente=$id_exp");
+      echo "<script>alert('Expediente eliminado correctamente'); window.location='pacientes.php?id_paciente={$r['id_paciente']}';</script>";
+      exit;
+    }
   }
 }
 
-/* ===================== DATOS PARA VISTA ===================== */
+/* ===================== DATOS ===================== */
 $id_paciente_sel = isset($_GET['id_paciente']) ? intval($_GET['id_paciente']) : 0;
-
-// Lista de pacientes
 $pacientes = $conexion->query("SELECT id_paciente, nombre, celular FROM pacientes ORDER BY nombre ASC");
 
-// Si hay paciente seleccionado: info, historias, y (si quieres) última exploración
 $paciente_info = null;
-$historias = null;
+$historia = null;
+$citas = null;
+$pagos = null;
+$expedientes = null;
+
 if ($id_paciente_sel > 0) {
   $stmt = $conexion->prepare("SELECT * FROM pacientes WHERE id_paciente=?");
   $stmt->bind_param("i", $id_paciente_sel);
@@ -121,229 +74,262 @@ if ($id_paciente_sel > 0) {
   $paciente_info = $stmt->get_result()->fetch_assoc();
   $stmt->close();
 
-  $historias = $conexion->query("
-     SELECT id_historia, lugar, fecha, motivo_consulta, fecha_registro
-     FROM historia_clinica
-     WHERE id_paciente = {$id_paciente_sel}
-     ORDER BY fecha DESC, id_historia DESC
+  $historia = $conexion->query("SELECT * FROM historia_clinica WHERE id_paciente=$id_paciente_sel ORDER BY id_historia DESC LIMIT 1")->fetch_assoc();
+
+  $citas = $conexion->query("
+    SELECT c.id_cita, c.fecha, c.hora, c.estado, t.nombre_tratamiento
+    FROM citas c
+    LEFT JOIN tratamientos t ON c.id_tratamiento = t.id_tratamiento
+    WHERE c.id_paciente = $id_paciente_sel
+    ORDER BY c.fecha DESC, c.hora DESC
+  ");
+  $pagos = $conexion->query("
+    SELECT p.id_pago, p.fecha_pago, p.monto, p.metodo_pago, t.nombre_tratamiento AS tratamiento, c.id_cita
+    FROM pagos p
+    LEFT JOIN tratamientos t ON p.id_tratamiento = t.id_tratamiento
+    LEFT JOIN citas c ON p.id_cita = c.id_cita
+    WHERE p.id_paciente = $id_paciente_sel
+    ORDER BY p.fecha_pago DESC
+  ");
+  $expedientes = $conexion->query("
+    SELECT * FROM expedientes WHERE id_paciente=$id_paciente_sel ORDER BY fecha_subida DESC
   ");
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Ortholex — Pacientes</title>
-  <link rel="stylesheet" href="css/inicio.css">
+<meta charset="UTF-8">
+<title>Ortholex — Pacientes</title>
+<link rel="stylesheet" href="css/inicio.css">
+<style>
+form.visual {
+  background:#fff;
+  padding:25px;
+  border-radius:10px;
+  box-shadow:0 3px 6px rgba(0,0,0,0.1);
+  margin-bottom:40px;
+}
+form.visual label {
+  font-weight:bold;
+  display:block;
+  margin-top:10px;
+  color:#1d3557;
+}
+form.visual input, form.visual select, form.visual textarea {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#f9fafb;
+  color:#333;
+}
+form.visual input[readonly], form.visual textarea[readonly] {
+  background:#f1f5f9;
+  color:#222;
+}
+.section-title {
+  margin-top:25px;
+  color:#a16976;
+  font-size:18px;
+  border-bottom:1px solid #a16976;
+  padding-bottom:4px;
+}
+</style>
 </head>
 <body>
-  <!-- Topbar -->
-  <div class="topbar">
-    <img src="imagenes/logo" alt="Logo" class="topbar-logo">
-  </div>
+<div class="topbar">
+  <img src="imagenes/logo" alt="Logo" class="topbar-logo">
+</div>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <ul class="menu">
-      <li><a href="form_cita.php">Citas</a></li>
-      <li><a href="pacientes.php" class="active">Pacientes</a></li>
-      <li><a href="form_expediente.php">Expedientes</a></li>
-      <li><a href="form_inventario.php">Inventario</a></li>
-      <li><a href="form_pago.php">Pagos</a></li>
-      <li><a href="tratamientos.php">Tratamientos</a></li>
-      <li><a href="index.php">Salir</a></li>
-    </ul>
-  </div>
+<div class="sidebar">
+  <ul class="menu">
+    <li><a href="form_cita.php">Citas</a></li>
+    <li><a href="pacientes.php" class="active">Pacientes</a></li>
+    <li><a href="form_inventario.php">Inventario</a></li>
+    <li><a href="form_pago.php">Pagos</a></li>
+    <li><a href="tratamientos.php">Tratamientos</a></li>
+    <li><a href="index.php">Salir</a></li>
+  </ul>
+</div>
 
-  <!-- Main -->
-  <div class="main">
-    <div class="content">
+<div class="main">
+  <div class="inventario-container">
+    <div class="inventario-header">
+      <h2>Pacientes registrados</h2>
+      <a href="form_paciente.php"><button class="btn-modificar">Nuevo paciente</button></a>
+    </div>
 
-      <!-- Lista + nuevo paciente -->
-      <div class="inventario-container">
-        <div class="inventario-header">
-          <h2>Pacientes</h2>
-<a href="form_paciente.php" class="btn-modificar">Nuevo paciente</a>
-        </div>
-
-        <!-- Tabla pacientes -->
-        <div class="tabla-inventario">
-          <table>
-            <tr><th>ID</th><th>Nombre</th><th>Celular</th><th>Ver</th></tr>
-            <?php if ($pacientes && $pacientes->num_rows>0): while($p = $pacientes->fetch_assoc()): ?>
-              <tr>
-                <td><?= $p['id_paciente'] ?></td>
-                <td><?= htmlspecialchars($p['nombre']) ?></td>
-                <td><?= htmlspecialchars($p['celular']) ?></td>
-                <td><a class="btn-modificar" href="pacientes.php?id_paciente=<?= $p['id_paciente'] ?>">Abrir</a></td>
-              </tr>
-            <?php endwhile; else: ?>
-              <tr><td colspan="4" style="text-align:center;">No hay pacientes registrados</td></tr>
-            <?php endif; ?>
-          </table>
-        </div>
-      </div>
-
-      <!-- Panel del paciente seleccionado -->
-      <?php if ($id_paciente_sel > 0 && $paciente_info): ?>
-      <div class="inventario-container" style="margin-top:30px;">
-        <div class="inventario-header">
-          <h2>Paciente: <?= htmlspecialchars($paciente_info['nombre']) ?></h2>
-          <div style="display:flex;gap:10px;">
-            <button class="btn-modificar" onclick="toggle('formHistoria')">Nueva historia clínica</button>
-            <button class="btn-modificar" onclick="toggle('formExploracion')">Nueva exploración</button>
-          </div>
-        </div>
-
-        <!-- Historias del paciente -->
-        <h3>Historias clínicas</h3>
-        <div class="tabla-inventario">
-          <table>
-            <tr><th>ID Historia</th><th>Fecha</th><th>Lugar</th><th>Motivo</th></tr>
-            <?php if ($historias && $historias->num_rows>0): while($h = $historias->fetch_assoc()): ?>
-              <tr>
-                <td><?= $h['id_historia'] ?></td>
-                <td><?= htmlspecialchars($h['fecha']) ?></td>
-                <td><?= htmlspecialchars($h['lugar']) ?></td>
-                <td><?= htmlspecialchars($h['motivo_consulta']) ?></td>
-              </tr>
-            <?php endwhile; else: ?>
-              <tr><td colspan="4" style="text-align:center;">Sin historias para este paciente.</td></tr>
-            <?php endif; ?>
-          </table>
-        </div>
-
-        <!-- Form historia clínica (autorreporte) -->
-        <div class="form-box" id="formHistoria" style="display:none;">
-          <form method="POST" autocomplete="off">
-            <h3>Nueva historia clínica</h3>
-            <input type="hidden" name="accion" value="guardar_historia">
-            <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
-
-            <div class="input-group"><label>Lugar</label><input name="lugar"></div>
-            <div class="input-group"><label>Fecha</label><input type="date" name="fecha" value="<?= date('Y-m-d') ?>"></div>
-            <div class="input-group"><label>Motivo de consulta</label><textarea name="motivo_consulta"></textarea></div>
-
-            <div class="buttons">
-              <button class="btn-guardar" type="submit">Guardar historia</button>
-              <button class="btn-cancelar" type="button" onclick="toggle('formHistoria')">Cancelar</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Form exploración bucal -->
-        <div class="form-box" id="formExploracion" style="display:none;">
-          <form method="POST" autocomplete="off">
-            <h3>Nueva exploración bucal</h3>
-            <input type="hidden" name="accion" value="guardar_exploracion">
-
-            <!-- Seleccionar historia a la que se liga la exploración -->
-            <div class="input-group">
-              <label>Historia clínica</label>
-              <select name="id_historia" required>
-                <option value="">Seleccione...</option>
-                <?php
-                  $hs = $conexion->query("SELECT id_historia, fecha, motivo_consulta FROM historia_clinica WHERE id_paciente={$id_paciente_sel} ORDER BY fecha DESC, id_historia DESC");
-                  if ($hs && $hs->num_rows>0) {
-                    while($x = $hs->fetch_assoc()){
-                      echo "<option value='{$x['id_historia']}'>#{$x['id_historia']} — {$x['fecha']} — ".htmlspecialchars($x['motivo_consulta'])."</option>";
-                    }
-                  }
-                ?>
-              </select>
-            </div>
-
-            <!-- Campos principales (los que me pasaste) -->
-            <div class="input-group"><label>¿Dónde hay dolor?</label><input name="dolor_donde"></div>
-            <div class="input-group"><label>¿Se calma?</label>
-              <select name="calma"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>¿Con qué?</label><input name="con_que"></div>
-            <div class="input-group"><label>Última visita al dentista</label><input type="date" name="ultima_visita"></div>
-            <div class="input-group"><label>¿Sangrado de encías?</label>
-              <select name="sangrado_encias"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>¿Cuándo?</label><input name="sangrado_cuando"></div>
-            <div class="input-group"><label>¿Movilidad dental?</label>
-              <select name="movilidad"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>Índice de placa</label><input name="indice_placa"></div>
-            <div class="input-group"><label>Higiene</label>
-              <select name="higiene">
-                <option>Muy buena</option><option>Buena</option><option>Regular</option><option>Mala</option>
-              </select>
-            </div>
-            <div class="input-group"><label>¿Manchas?</label>
-              <select name="manchas"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>Descripción de manchas</label><input name="manchas_desc"></div>
-            <div class="input-group"><label>¿Golpe en dientes?</label>
-              <select name="golpe"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>¿Fractura?</label>
-              <select name="fractura"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>¿Cuál diente?</label><input name="cual_diente"></div>
-            <div class="input-group"><label>¿Tratamiento previo?</label><input name="tratamiento_diente"></div>
-            <div class="input-group"><label>¿Dificultad para abrir la boca?</label><input name="dificultad_abrir"></div>
-            <div class="input-group"><label>¿Sarro?</label>
-              <select name="sarro"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>¿Enfermedad periodontal?</label>
-              <select name="periodontal"><option>No</option><option>Sí</option></select>
-            </div>
-            <div class="input-group"><label>Estado bucal general</label><textarea name="estado_bucal"></textarea></div>
-
-            <h4>Diagnóstico y tratamiento</h4>
-            <div class="input-group"><label>Diagnóstico</label><textarea name="diagnostico"></textarea></div>
-            <div class="input-group"><label>Plan de tratamiento</label><textarea name="plan_tratamiento"></textarea></div>
-            <div class="input-group"><label>Observaciones</label><textarea name="observaciones"></textarea></div>
-            <div class="input-group"><label>Firma del dentista</label><input name="firma_dentista"></div>
-
-            <div class="buttons">
-              <button class="btn-guardar" type="submit">Guardar exploración</button>
-              <button class="btn-cancelar" type="button" onclick="toggle('formExploracion')">Cancelar</button>
-            </div>
-          </form>
-        </div>
-
-      </div>
-      <?php endif; ?>
-
+    <div class="tabla-inventario">
+      <table>
+        <tr><th>ID</th><th>Nombre</th><th>Celular</th><th>Ver</th></tr>
+        <?php if ($pacientes && $pacientes->num_rows > 0): while($p = $pacientes->fetch_assoc()): ?>
+        <tr>
+          <td><?= $p['id_paciente'] ?></td>
+          <td><?= htmlspecialchars($p['nombre']) ?></td>
+          <td><?= htmlspecialchars($p['celular']) ?></td>
+          <td><a href="pacientes.php?id_paciente=<?= $p['id_paciente'] ?>"><button class="btn-modificar">Abrir</button></a></td>
+        </tr>
+        <?php endwhile; else: ?>
+        <tr><td colspan="4" style="text-align:center;">No hay pacientes registrados</td></tr>
+        <?php endif; ?>
+      </table>
     </div>
   </div>
 
-  <script>
-  function toggle(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
-    if (el.style.display === 'block') {
-      window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' });
-    }
-  }
-  </script>
+  <?php if ($id_paciente_sel > 0 && $paciente_info): ?>
+  <div class="inventario-container">
+    <div class="inventario-header">
+      <h2>Paciente: <?= htmlspecialchars($paciente_info['nombre']) ?></h2>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-modificar" onclick="toggle('formExpediente')">Nuevo expediente</button>
 
-  <style>
-    .tabla-inventario table th, .tabla-inventario table td { text-align:center; }
-    .form-box .input-group { margin-bottom: 10px; }
-    .form-box .input-group input,
-    .form-box .input-group textarea,
-    .form-box .input-group select {
-      width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px;
-    }
-    .form-box h3, .form-box h4 { margin-top: 10px; }
-  </style>
+        <form method="POST" onsubmit="return confirm('¿Eliminar paciente y todos sus datos?');">
+          <input type="hidden" name="accion" value="eliminar_paciente">
+          <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
+          <button type="submit" class="btn-eliminar">Eliminar paciente</button>
+        </form>
+
+        <button class="btn-cancelar" onclick="window.location='pacientes.php'">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- 🧍 DATOS PERSONALES -->
+    <form class="visual">
+      <div class="section-title">Datos personales</div>
+      <label>Nombre completo</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['nombre']) ?>">
+      <label>Fecha de nacimiento</label>
+      <input readonly value="<?= date('d/m/Y', strtotime($paciente_info['fecha_nacimiento'])) ?>">
+      <label>Celular</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['celular']) ?>">
+      <label>Estado civil</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['estado_civil']) ?>">
+      <label>Nacionalidad</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['nacionalidad']) ?>">
+      <label>Domicilio</label>
+      <textarea readonly><?= htmlspecialchars($paciente_info['domicilio']) ?></textarea>
+      <label>Profesión</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['profesion']) ?>">
+      <label>Contacto de emergencia</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['contacto_emergencia']) ?>">
+      <label>Teléfono de emergencia</label>
+      <input readonly value="<?= htmlspecialchars($paciente_info['telefono_emergencia']) ?>">
+    </form>
+
+    <!-- 🩺 HISTORIA CLÍNICA -->
+    <?php if ($historia): ?>
+    <form class="visual">
+      <div class="section-title">Historia clínica (autorreporte)</div>
+      <label>Lugar</label><input readonly value="<?= htmlspecialchars($historia['lugar']) ?>">
+      <label>Fecha</label><input readonly value="<?= date('d/m/Y', strtotime($historia['fecha'])) ?>">
+      <label>Motivo de consulta</label><textarea readonly><?= htmlspecialchars($historia['motivo_consulta']) ?></textarea>
+      <label>¿Sufre alguna enfermedad?</label><input readonly value="<?= htmlspecialchars($historia['enf_general']) ?>">
+      <label>¿Cuál?</label><textarea readonly><?= htmlspecialchars($historia['enf_cual']) ?></textarea>
+      <label>Medicamentos</label><textarea readonly><?= htmlspecialchars($historia['medicamentos']) ?></textarea>
+      <label>Alergias</label><textarea readonly><?= htmlspecialchars($historia['alergias']) ?></textarea>
+      <label>Observaciones</label><textarea readonly><?= htmlspecialchars($historia['observaciones']) ?></textarea>
+    </form>
+    <?php endif; ?>
+
+    <!-- 🗂️ EXPEDIENTES -->
+    <h3 style="color:#1d3557;">Expedientes</h3>
+    <div class="tabla-inventario">
+      <table>
+        <tr><th>ID</th><th>Descripción</th><th>Archivo</th><th>Fecha</th><th>Acción</th></tr>
+        <?php if ($expedientes && $expedientes->num_rows > 0): while($e = $expedientes->fetch_assoc()): ?>
+        <tr>
+          <td><?= $e['id_expediente'] ?></td>
+          <td><?= htmlspecialchars($e['descripcion']) ?></td>
+          <td><a href="<?= htmlspecialchars($e['archivo']) ?>" target="_blank">Ver archivo</a></td>
+          <td><?= date('d/m/Y H:i', strtotime($e['fecha_subida'])) ?> hrs</td>
+          <td>
+            <form method="POST" onsubmit="return confirm('¿Eliminar este expediente?');" style="margin:0;">
+              <input type="hidden" name="accion" value="eliminar_expediente">
+              <input type="hidden" name="id_expediente" value="<?= $e['id_expediente'] ?>">
+              <button type="submit" class="btn-eliminar">Eliminar</button>
+            </form>
+          </td>
+        </tr>
+        <?php endwhile; else: ?>
+        <tr><td colspan="5" style="text-align:center;">Sin expedientes registrados</td></tr>
+        <?php endif; ?>
+      </table>
+    </div>
+
+    <!-- ➕ NUEVO EXPEDIENTE -->
+    <div class="form-box" id="formExpediente" style="display:none;">
+      <form method="POST" enctype="multipart/form-data">
+        <h3>Nuevo expediente</h3>
+        <input type="hidden" name="accion" value="guardar_expediente">
+        <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
+        <div class="input-group"><label>Descripción</label><textarea name="descripcion" required></textarea></div>
+        <div class="input-group"><label>Archivo (PDF o imagen)</label><input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required></div>
+        <div class="buttons">
+          <button type="submit" class="btn-guardar">Guardar</button>
+          <button type="button" class="btn-cancelar" onclick="toggle('formExpediente')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 🗓️ CITAS -->
+    <h3 style="color:#1d3557;">Historial de citas</h3>
+    <div class="tabla-inventario">
+      <table>
+        <tr><th>ID</th><th>Fecha</th><th>Hora</th><th>Tratamiento</th><th>Estado</th></tr>
+        <?php if ($citas && $citas->num_rows > 0): while($c = $citas->fetch_assoc()): ?>
+        <tr>
+          <td><?= $c['id_cita'] ?></td>
+          <td><?= date('d/m/Y', strtotime($c['fecha'])) ?></td>
+          <td><?= date('g:i A', strtotime($c['hora'])) ?></td>
+          <td><?= htmlspecialchars($c['nombre_tratamiento'] ?? '—') ?></td>
+          <td><?= ucfirst($c['estado']) ?></td>
+        </tr>
+        <?php endwhile; else: ?>
+        <tr><td colspan="5" style="text-align:center;">Sin citas registradas</td></tr>
+        <?php endif; ?>
+      </table>
+    </div>
+
+    <!-- 💳 PAGOS -->
+    <h3 style="color:#1d3557;">Historial de pagos</h3>
+    <div class="tabla-inventario">
+      <table>
+        <tr><th>ID</th><th>Fecha</th><th>Tratamiento</th><th>Método</th><th>Monto</th><th>Cita</th></tr>
+        <?php if ($pagos && $pagos->num_rows > 0): while($p = $pagos->fetch_assoc()): ?>
+        <tr>
+          <td><?= $p['id_pago'] ?></td>
+          <td><?= date('d/m/Y', strtotime($p['fecha_pago'])) ?></td>
+          <td><?= htmlspecialchars($p['tratamiento'] ?? '—') ?></td>
+          <td><?= htmlspecialchars($p['metodo_pago']) ?></td>
+          <td>$<?= number_format($p['monto'], 2) ?></td>
+          <td><?= $p['id_cita'] ? '#'.$p['id_cita'] : '—' ?></td>
+        </tr>
+        <?php endwhile; else: ?>
+        <tr><td colspan="6" style="text-align:center;">Sin pagos registrados</td></tr>
+        <?php endif; ?>
+      </table>
+    </div>
+  </div>
+  <?php endif; ?>
+</div>
+
 <script>
-  // 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
-  (function () {
-    // Limpia el historial actual para evitar retroceso
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = function () {
-      window.history.pushState(null, "", window.location.href);
-    };
-  })();
+function toggle(id){const el=document.getElementById(id);if(!el)return;el.style.display=(el.style.display==='none'||el.style.display==='')?'block':'none';if(el.style.display==='block')window.scrollTo({top:el.offsetTop-100,behavior:'smooth'});}
+(function(){window.history.pushState(null,"",window.location.href);window.onpopstate=function(){window.history.pushState(null,"",window.location.href);};})();
 </script>
+
 <?php $conexion->close(); ?>
 </body>
 </html>
+
+
+
+
+
+
+
+
+

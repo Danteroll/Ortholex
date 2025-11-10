@@ -59,7 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
   $stmt2->execute();
   $stmt2->close();
 
-  // ✅ Redirige a la página anterior
   echo "<script>alert('✅ Registro completado correctamente.'); window.history.back();</script>";
   exit;
 }
@@ -160,7 +159,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
       <div class="section-title">Datos personales</div>
       <div class="input-group"><label>Nombre completo*</label><input name="nombre" required></div>
       <div class="input-group"><label>Fecha de nacimiento</label><input type="date" name="fecha_nacimiento"></div>
-      <div class="input-group"><label>Celular</label><input name="celular"></div>
+
+      <div class="input-group">
+        <label>Celular</label>
+        <input type="tel" name="celular" maxlength="10" pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos" required>
+      </div>
+
       <div class="input-group">
         <label>Estado civil</label>
         <select name="estado_civil">
@@ -170,11 +174,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
           <option>Viudo</option>
         </select>
       </div>
+
       <div class="input-group"><label>Nacionalidad</label><input name="nacionalidad"></div>
       <div class="input-group"><label>Domicilio</label><textarea name="domicilio"></textarea></div>
       <div class="input-group"><label>Profesión</label><input name="profesion"></div>
       <div class="input-group"><label>Contacto de emergencia</label><input name="contacto_emergencia"></div>
-      <div class="input-group"><label>Teléfono de emergencia</label><input name="telefono_emergencia"></div>
+
+      <div class="input-group">
+        <label>Teléfono de emergencia</label>
+        <input type="tel" name="telefono_emergencia" maxlength="10" pattern="[0-9]{10}" title="Debe contener exactamente 10 dígitos" required>
+      </div>
 
       <div class="section-title">Historia clínica (autorreporte)</div>
       <div class="input-group"><label>Lugar</label><input name="lugar"></div>
@@ -194,8 +203,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
 
     <footer>Ortholex — Registro de pacientes © <?= date('Y') ?></footer>
   </div>
+
+  <script>
+  // Limitar entrada a 10 dígitos numéricos
+  document.querySelectorAll('input[type="tel"]').forEach(input => {
+    input.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+    });
+  });
+  </script>
 </body>
 </html>
+
 
 
 

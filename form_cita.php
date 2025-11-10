@@ -1,13 +1,6 @@
 <?php 
 include("conexion.php");
 
-// 🗑️ Eliminar todas las citas
-if (isset($_GET['eliminar_todo'])) {
-    $conexion->query("DELETE FROM citas");
-    echo "<script>alert('Todas las citas fueron eliminadas correctamente.'); window.location='form_cita.php';</script>";
-    exit;
-}
-
 // 🗑️ Eliminar cita específica
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['eliminar_cita'])) {
     $id_cita = intval($_POST['cita_id']);
@@ -38,6 +31,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_cita'])) {
 
     echo "<script>alert('Cita registrada correctamente.'); window.location='form_cita.php';</script>";
     exit;
+}
+
+// ✏️ Actualizar estado de cita
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['editar_estado'])) {
+    $id_cita = intval($_POST['cita_id']);
+    $nuevo_estado = $_POST['nuevo_estado'];
+    if ($id_cita > 0 && in_array($nuevo_estado, ['pendiente', 'realizada', 'cancelada'])) {
+        $stmt = $conexion->prepare("UPDATE citas SET estado=? WHERE id_cita=?");
+        $stmt->bind_param("si", $nuevo_estado, $id_cita);
+        $stmt->execute();
+        $stmt->close();
+        echo "<script>alert('Estado de la cita actualizado correctamente.'); window.location='form_cita.php';</script>";
+        exit;
+    } else {
+        echo "<script>alert('Seleccione una cita y un estado válidos.');</script>";
+    }
 }
 
 // 📋 Obtener datos
@@ -186,7 +195,6 @@ if ($res && $res->num_rows > 0) {
   <ul class="menu">
     <li><a href="form_cita.php" class="active">Citas</a></li>
     <li><a href="pacientes.php">Pacientes</a></li>
-    <li><a href="form_expediente.php">Expedientes</a></li>
     <li><a href="form_inventario.php">Inventario</a></li>
     <li><a href="form_pago.php">Pagos</a></li>
     <li><a href="tratamientos.php">Tratamientos</a></li>
@@ -202,8 +210,8 @@ if ($res && $res->num_rows > 0) {
       <div style="display:flex;gap:10px;">
         <a href="form_paciente.php"><button class="btn-modificar">Nuevo paciente</button></a>
         <button class="btn-modificar" onclick="toggleForm()">Nueva cita</button>
+        <button class="btn-modificar" onclick="toggleEditar()">Editar estado</button>
         <button class="btn-eliminar" onclick="toggleEliminar()">Eliminar cita</button>
-        <button class="btn-eliminar" onclick="if(confirm('¿Deseas eliminar todas las citas?')) window.location='form_cita.php?eliminar_todo=true';">Eliminar todas</button>
       </div>
     </div>
 
@@ -211,7 +219,6 @@ if ($res && $res->num_rows > 0) {
     <div class="form-box" id="nuevaCita" style="display:none;">
       <form method="POST">
         <h3 style="color:#1d3557;">Registrar nueva cita</h3>
-
         <div class="input-group">
           <label>Paciente:</label>
           <select name="id_paciente" required>
@@ -221,7 +228,6 @@ if ($res && $res->num_rows > 0) {
             <?php } ?>
           </select>
         </div>
-
         <div class="input-group">
           <label>Tratamiento:</label>
           <select name="id_tratamiento">
@@ -231,17 +237,14 @@ if ($res && $res->num_rows > 0) {
             <?php } ?>
           </select>
         </div>
-
         <div class="input-group">
           <label>Fecha:</label>
           <input type="date" name="fecha" required>
         </div>
-
         <div class="input-group">
           <label>Hora:</label>
           <input type="time" name="hora" required>
         </div>
-
         <div class="input-group">
           <label>Estado:</label>
           <select name="estado">
@@ -250,10 +253,37 @@ if ($res && $res->num_rows > 0) {
             <option value="cancelada">Cancelada</option>
           </select>
         </div>
-
         <div class="buttons">
           <button type="submit" name="registrar_cita" class="btn-guardar">Guardar</button>
           <button type="button" class="btn-cancelar" onclick="cerrarFormCita()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ✏️ Formulario editar estado -->
+    <div class="form-box" id="formEditar" style="display:none;">
+      <form method="POST">
+        <h3 style="color:#1d3557;">Editar estado de cita</h3>
+        <div class="input-group">
+          <label>Cita:</label>
+          <select name="cita_id" required>
+            <option value="">Seleccione...</option>
+            <?php foreach ($citas as $c): ?>
+              <option value="<?= $c['id']; ?>"><?= htmlspecialchars($c['title']); ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Nuevo estado:</label>
+          <select name="nuevo_estado" required>
+            <option value="pendiente">Pendiente</option>
+            <option value="realizada">Realizada</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div class="buttons">
+          <button type="submit" name="editar_estado" class="btn-guardar">Guardar cambios</button>
+          <button type="button" class="btn-cancelar" onclick="cerrarFormEditar()">Cancelar</button>
         </div>
       </form>
     </div>
@@ -289,7 +319,6 @@ if ($res && $res->num_rows > 0) {
           <th>Hora</th>
           <th>Estado</th>
         </tr>
-
         <?php if ($res && $res->num_rows > 0): ?>
           <?php $res->data_seek(0); while ($row = $res->fetch_assoc()): ?>
             <tr>
@@ -316,78 +345,44 @@ if ($res && $res->num_rows > 0) {
 </div>
 
 <script>
-let citaAbierta = false;
-let eliminarAbierta = false;
+function toggleForm(){mostrar('nuevaCita');}
+function toggleEditar(){mostrar('formEditar');}
+function toggleEliminar(){mostrar('formEliminar');}
+function cerrarFormCita(){ocultar('nuevaCita');}
+function cerrarFormEditar(){ocultar('formEditar');}
+function cerrarFormEliminar(){ocultar('formEliminar');}
+function mostrar(id){['nuevaCita','formEditar','formEliminar'].forEach(f=>ocultar(f));document.getElementById(id).style.display='block';}
+function ocultar(id){document.getElementById(id).style.display='none';}
 
-// === Mostrar / ocultar formularios ===
-function toggleForm() {
-  const form = document.getElementById('nuevaCita');
-  if (!citaAbierta) {
-    form.style.display = 'block';
-    citaAbierta = true;
-    eliminarAbierta = false;
-    document.getElementById('formEliminar').style.display = 'none';
-  }
-}
-
-function toggleEliminar() {
-  const form = document.getElementById('formEliminar');
-  if (!eliminarAbierta) {
-    form.style.display = 'block';
-    eliminarAbierta = true;
-    citaAbierta = false;
-    document.getElementById('nuevaCita').style.display = 'none';
-  }
-}
-
-// ✅ Botones cancelar
-function cerrarFormCita() {
-  document.getElementById('nuevaCita').style.display = 'none';
-  citaAbierta = false;
-}
-function cerrarFormEliminar() {
-  document.getElementById('formEliminar').style.display = 'none';
-  eliminarAbierta = false;
-}
-
-// === Calendario Ortholex ===
-document.addEventListener('DOMContentLoaded', function () {
-  const calendarEl = document.getElementById('calendar');
-  const calendar = new FullCalendar.Calendar(calendarEl, {
-    initialView: 'dayGridMonth',
-    locale: 'es',
-    height: 'auto',
-    events: <?= json_encode($citas, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); ?>,
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
-    buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
-    eventDidMount: function(info) {
-      info.el.style.borderRadius = '6px';
-      info.el.style.padding = '4px 6px';
-      info.el.style.fontSize = '13px';
-      info.el.style.color = '#fff';
-      info.el.style.background = `linear-gradient(135deg, ${info.event.backgroundColor}, #814c59)`;
-      info.el.style.border = 'none';
+// Calendario
+document.addEventListener('DOMContentLoaded',function(){
+  const calendarEl=document.getElementById('calendar');
+  const calendar=new FullCalendar.Calendar(calendarEl,{
+    initialView:'dayGridMonth',
+    locale:'es',
+    height:'auto',
+    events:<?= json_encode($citas, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); ?>,
+    headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth,timeGridWeek,timeGridDay'},
+    buttonText:{today:'Hoy',month:'Mes',week:'Semana',day:'Día'},
+    eventDidMount:function(info){
+      info.el.style.borderRadius='6px';
+      info.el.style.padding='4px 6px';
+      info.el.style.fontSize='13px';
+      info.el.style.color='#fff';
+      info.el.style.background=`linear-gradient(135deg, ${info.event.backgroundColor}, #814c59)`;
+      info.el.style.border='none';
     }
   });
   calendar.render();
 });
-
-// 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
-(function () {
-  window.history.pushState(null, "", window.location.href);
-  window.onpopstate = function () {
-    window.history.pushState(null, "", window.location.href);
-  };
-})();
+(function(){window.history.pushState(null,"",window.location.href);window.onpopstate=function(){window.history.pushState(null,"",window.location.href);};})();
 </script>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
+
+
 
 
 
