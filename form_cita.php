@@ -253,7 +253,7 @@ if ($res && $res->num_rows > 0) {
 
         <div class="buttons">
           <button type="submit" name="registrar_cita" class="btn-guardar">Guardar</button>
-          <button type="button" class="btn-cancelar" onclick="toggleForm()">Cancelar</button>
+          <button type="button" class="btn-cancelar" onclick="cerrarFormCita()">Cancelar</button>
         </div>
       </form>
     </div>
@@ -273,7 +273,7 @@ if ($res && $res->num_rows > 0) {
         </div>
         <div class="buttons">
           <button type="submit" name="eliminar_cita" class="btn-guardar">Eliminar</button>
-          <button type="button" class="btn-cancelar" onclick="toggleEliminar()">Cancelar</button>
+          <button type="button" class="btn-cancelar" onclick="cerrarFormEliminar()">Cancelar</button>
         </div>
       </form>
     </div>
@@ -316,13 +316,38 @@ if ($res && $res->num_rows > 0) {
 </div>
 
 <script>
+let citaAbierta = false;
+let eliminarAbierta = false;
+
+// === Mostrar / ocultar formularios ===
 function toggleForm() {
   const form = document.getElementById('nuevaCita');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (!citaAbierta) {
+    form.style.display = 'block';
+    citaAbierta = true;
+    eliminarAbierta = false;
+    document.getElementById('formEliminar').style.display = 'none';
+  }
 }
+
 function toggleEliminar() {
   const form = document.getElementById('formEliminar');
-  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (!eliminarAbierta) {
+    form.style.display = 'block';
+    eliminarAbierta = true;
+    citaAbierta = false;
+    document.getElementById('nuevaCita').style.display = 'none';
+  }
+}
+
+// ✅ Botones cancelar
+function cerrarFormCita() {
+  document.getElementById('nuevaCita').style.display = 'none';
+  citaAbierta = false;
+}
+function cerrarFormEliminar() {
+  document.getElementById('formEliminar').style.display = 'none';
+  eliminarAbierta = false;
 }
 
 // === Calendario Ortholex ===
@@ -350,10 +375,19 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   calendar.render();
 });
+
+// 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+(function () {
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function () {
+    window.history.pushState(null, "", window.location.href);
+  };
+})();
 </script>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
+
 
 

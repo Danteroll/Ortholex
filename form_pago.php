@@ -169,7 +169,7 @@ $res = $conexion->query("
 
           <div class="buttons">
             <button type="submit" name="registrar_pago" class="btn-guardar">Guardar</button>
-            <button type="button" class="btn-cancelar" onclick="togglePago()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarPago()">Cancelar</button>
           </div>
         </form>
       </div>
@@ -207,7 +207,7 @@ $res = $conexion->query("
 
           <div class="buttons">
             <button type="submit" name="eliminar_pago" class="btn-guardar">Eliminar</button>
-            <button type="button" class="btn-cancelar" onclick="toggleEliminar()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarEliminar()">Cancelar</button>
           </div>
         </form>
       </div>
@@ -244,11 +244,7 @@ $res = $conexion->query("
               </tr>
             <?php endwhile; ?>
           <?php else: ?>
-            <tr>
-              <td colspan="7" style="text-align:center;padding:20px;color:#555;">
-                No hay pagos registrados.
-              </td>
-            </tr>
+            <tr><td colspan="7" style="text-align:center;padding:20px;color:#555;">No hay pagos registrados.</td></tr>
           <?php endif; ?>
         </table>
       </div>
@@ -258,14 +254,37 @@ $res = $conexion->query("
 </div>
 
 <script>
+let pagoAbierto = false;
+let eliminarAbierto = false;
+
 function togglePago() {
   const form = document.getElementById('nuevoPago');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  if (!pagoAbierto) {
+    form.style.display = 'block';
+    pagoAbierto = true;
+    eliminarAbierto = false;
+    document.getElementById('formEliminar').style.display = 'none';
+  }
 }
 
 function toggleEliminar() {
   const form = document.getElementById('formEliminar');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  if (!eliminarAbierto) {
+    form.style.display = 'block';
+    eliminarAbierto = true;
+    pagoAbierto = false;
+    document.getElementById('nuevoPago').style.display = 'none';
+  }
+}
+
+function cerrarPago() {
+  document.getElementById('nuevoPago').style.display = 'none';
+  pagoAbierto = false;
+}
+
+function cerrarEliminar() {
+  document.getElementById('formEliminar').style.display = 'none';
+  eliminarAbierto = false;
 }
 
 function rellenarCampos() {
@@ -276,6 +295,14 @@ function rellenarCampos() {
   document.getElementById('tratamiento').value = option.getAttribute('data-tratamiento') || '';
   document.getElementById('monto').value = option.getAttribute('data-precio') || '';
 }
+
+// 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+(function () {
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function () {
+    window.history.pushState(null, "", window.location.href);
+  };
+})();
 </script>
 
 <style>
@@ -289,21 +316,17 @@ function rellenarCampos() {
   color: #333;
   background-color: #fff;
   transition: border-color 0.3s, box-shadow 0.3s;
-  appearance: none;
 }
-
 .input-group select:focus {
   border-color: #a16976;
   box-shadow: 0 0 4px rgba(161,105,118,0.4);
   outline: none;
 }
-
-table th, table td {
-  text-align: center;
-}
+table th, table td { text-align: center; }
 </style>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
+
 

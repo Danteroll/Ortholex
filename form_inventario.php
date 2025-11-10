@@ -270,7 +270,16 @@ date_default_timezone_set('America/Mexico_City');
       vertical-align: middle;
     }
   </style>
-
+<script>
+  // 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+  (function () {
+    // Limpia el historial actual para evitar retroceso
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, "", window.location.href);
+    };
+  })();
+</script>
 <?php $conexion->close(); ?>
 </body>
 </html>

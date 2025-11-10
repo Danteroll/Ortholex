@@ -334,7 +334,16 @@ if ($id_paciente_sel > 0) {
     }
     .form-box h3, .form-box h4 { margin-top: 10px; }
   </style>
-
+<script>
+  // 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+  (function () {
+    // Limpia el historial actual para evitar retroceso
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, "", window.location.href);
+    };
+  })();
+</script>
 <?php $conexion->close(); ?>
 </body>
 </html>

@@ -99,25 +99,21 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
       <div class="form-box" id="formNuevo" style="display:none;">
         <form method="POST">
           <h3>Registrar nuevo tratamiento</h3>
-
           <div class="input-group">
             <label>Nombre:</label>
             <input type="text" name="nombre_tratamiento" required>
           </div>
-
           <div class="input-group">
             <label>Descripción:</label>
             <textarea name="descripcion" rows="3" placeholder="Escribe una breve descripción..."></textarea>
           </div>
-
           <div class="input-group">
             <label>Precio ($):</label>
             <input type="number" step="0.01" name="precio" required>
           </div>
-
           <div class="buttons">
             <button type="submit" name="guardar_tratamiento" class="btn-guardar">Guardar</button>
-            <button type="button" class="btn-cancelar" onclick="toggleNuevo()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarNuevo()">Cancelar</button>
           </div>
         </form>
       </div>
@@ -126,7 +122,6 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
       <div class="form-box" id="formEditar" style="display:none;">
         <form method="POST">
           <h3>Modificar tratamiento</h3>
-
           <div class="input-group">
             <label for="id_tratamiento">Seleccionar tratamiento:</label>
             <select id="id_tratamiento" name="id_tratamiento" required onchange="rellenarDatos()">
@@ -146,25 +141,21 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
               ?>
             </select>
           </div>
-
           <div class="input-group">
             <label>Nombre:</label>
             <input type="text" id="nombre_tratamiento" name="nombre_tratamiento" required>
           </div>
-
           <div class="input-group">
             <label>Descripción:</label>
             <textarea id="descripcion" name="descripcion" rows="3"></textarea>
           </div>
-
           <div class="input-group">
             <label>Precio ($):</label>
             <input type="number" step="0.01" id="precio" name="precio" required>
           </div>
-
           <div class="buttons">
             <button type="submit" name="editar_tratamiento" class="btn-guardar">Guardar cambios</button>
-            <button type="button" class="btn-cancelar" onclick="toggleEditar()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarEditar()">Cancelar</button>
           </div>
         </form>
       </div>
@@ -173,7 +164,6 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
       <div class="form-box" id="formEliminar" style="display:none;">
         <form method="POST">
           <h3>Eliminar tratamiento</h3>
-
           <div class="input-group">
             <label for="id_tratamiento_eliminar">Seleccione el tratamiento:</label>
             <select id="id_tratamiento_eliminar" name="id_tratamiento" required>
@@ -182,9 +172,7 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
               $resEliminar = $conexion->query("SELECT id_tratamiento, nombre_tratamiento, costo FROM tratamientos ORDER BY nombre_tratamiento ASC");
               if ($resEliminar && $resEliminar->num_rows > 0) {
                 while ($t = $resEliminar->fetch_assoc()) {
-                  echo "<option value='{$t['id_tratamiento']}'>
-                          {$t['nombre_tratamiento']} — $".number_format((float)$t['costo'], 2)."
-                        </option>";
+                  echo "<option value='{$t['id_tratamiento']}'>{$t['nombre_tratamiento']} — $".number_format((float)$t['costo'], 2)."</option>";
                 }
               } else {
                 echo "<option value=''>No hay tratamientos registrados</option>";
@@ -192,15 +180,14 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
               ?>
             </select>
           </div>
-
           <div class="buttons">
             <button type="submit" name="eliminar_tratamiento" class="btn-eliminar">Eliminar</button>
-            <button type="button" class="btn-cancelar" onclick="toggleEliminar()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="cerrarEliminar()">Cancelar</button>
           </div>
         </form>
       </div>
 
-      <!--Tabla de tratamientos -->
+      <!-- Tabla -->
       <div class="tabla-inventario">
         <table>
           <tr>
@@ -209,7 +196,6 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
             <th>Descripción</th>
             <th>Precio</th>
           </tr>
-
           <?php
           $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratamiento ASC");
           if ($tratamientos && $tratamientos->num_rows > 0):
@@ -222,9 +208,7 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
               <td>$<?= number_format((float)$row['costo'], 2) ?></td>
             </tr>
           <?php endwhile; else: ?>
-            <tr>
-              <td colspan="4" style="text-align:center;padding:20px;color:#555;">No hay tratamientos registrados.</td>
-            </tr>
+            <tr><td colspan="4" style="text-align:center;padding:20px;color:#555;">No hay tratamientos registrados.</td></tr>
           <?php endif; ?>
         </table>
       </div>
@@ -233,22 +217,57 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
 </div>
 
 <script>
+let nuevoAbierto = false;
+let editarAbierto = false;
+let eliminarAbierto = false;
+
 function toggleNuevo() {
   const form = document.getElementById('formNuevo');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
-  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+  if (!nuevoAbierto) {
+    form.style.display = 'block';
+    nuevoAbierto = true;
+    editarAbierto = false;
+    eliminarAbierto = false;
+    document.getElementById('formEditar').style.display = 'none';
+    document.getElementById('formEliminar').style.display = 'none';
+  }
 }
 
 function toggleEditar() {
   const form = document.getElementById('formEditar');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
-  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+  if (!editarAbierto) {
+    form.style.display = 'block';
+    editarAbierto = true;
+    nuevoAbierto = false;
+    eliminarAbierto = false;
+    document.getElementById('formNuevo').style.display = 'none';
+    document.getElementById('formEliminar').style.display = 'none';
+  }
 }
 
 function toggleEliminar() {
   const form = document.getElementById('formEliminar');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
-  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+  if (!eliminarAbierto) {
+    form.style.display = 'block';
+    eliminarAbierto = true;
+    nuevoAbierto = false;
+    editarAbierto = false;
+    document.getElementById('formNuevo').style.display = 'none';
+    document.getElementById('formEditar').style.display = 'none';
+  }
+}
+
+function cerrarNuevo() {
+  document.getElementById('formNuevo').style.display = 'none';
+  nuevoAbierto = false;
+}
+function cerrarEditar() {
+  document.getElementById('formEditar').style.display = 'none';
+  editarAbierto = false;
+}
+function cerrarEliminar() {
+  document.getElementById('formEliminar').style.display = 'none';
+  eliminarAbierto = false;
 }
 
 function rellenarDatos() {
@@ -259,9 +278,16 @@ function rellenarDatos() {
   document.getElementById('descripcion').value = opt.getAttribute('data-desc') || '';
   document.getElementById('precio').value = opt.getAttribute('data-precio') || '';
 }
+
+// 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+(function () {
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function () {
+    window.history.pushState(null, "", window.location.href);
+  };
+})();
 </script>
 
-<!-- 💅 Estilos mejorados para textarea y select -->
 <style>
 .input-group textarea,
 .input-group select,
@@ -278,7 +304,6 @@ function rellenarDatos() {
   appearance: none;
   box-sizing: border-box;
 }
-
 .input-group textarea:focus,
 .input-group select:focus,
 .input-group input:focus {
@@ -292,6 +317,7 @@ function rellenarDatos() {
 <?php $conexion->close(); ?>
 </body>
 </html>
+
 
 
 

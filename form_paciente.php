@@ -192,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
       </div>
     </form>
 
-    <footer>Ortholex Dental — Registro de pacientes © <?= date('Y') ?></footer>
+    <footer>Ortholex — Registro de pacientes © <?= date('Y') ?></footer>
   </div>
 </body>
 </html>

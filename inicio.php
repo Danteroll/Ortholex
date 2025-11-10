@@ -34,5 +34,15 @@
       </div>
     </div>
   </div>
+  <script>
+  // 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
+  (function () {
+    // Limpia el historial actual para evitar retroceso
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, "", window.location.href);
+    };
+  })();
+</script>
 </body>
 </html>
