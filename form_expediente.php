@@ -1,11 +1,16 @@
-<?php include("conexion.php"); ?>
+<?php
+include("conexion.php");
+date_default_timezone_set('America/Mexico_City');
+?>
 
+<!-- plantilla.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Nuevo Expediente — Ortholex</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Ortholex</title>
+  <link rel="stylesheet" href="css/inicio.css">
+  <style>
 body{
   font-family:'Segoe UI',sans-serif;
   background:#f8fbff;
@@ -61,88 +66,115 @@ a.link:hover{text-decoration:underline}
 </style>
 </head>
 <body>
+  <!-- Barra superior -->
+  <div class="topbar">
+    <img src="imagenes/logo" alt="Logo" class="topbar-logo">
+  </div>
 
-<h2>Registrar nuevo expediente</h2>
-<form method="POST" action="" enctype="multipart/form-data">
-    <label>Paciente:</label>
-    <select name="id_paciente" required>
-        <option value="">Seleccione...</option>
-        <?php
-        $res = $conexion->query("SELECT * FROM pacientes ORDER BY nombre ASC");
-        while($p = $res->fetch_assoc()){
-            echo "<option value='{$p['id_paciente']}'>{$p['nombre']}</option>";
-        }
-        ?>
-    </select>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <ul class="menu">
+      <li><a href="form_cita.php">Citas</a></li>
+      <li><a href="pacientes.php" class="active">Pacientes</a></li>
+      <li><a href="form_expediente.php">Expedientes</a></li>
+      <li><a href="form_inventario.php">Inventario</a></li>
+      <li><a href="form_pago.php">Pagos</a></li>
+      <li><a href="tratamientos.php">Tratamientos</a></li>
+    </ul>
+  </div>
+  <!-- Contenido principal -->
+  <div class="main">
+    <div class="content">
 
-    <label>Descripción:</label>
-    <textarea name="descripcion" required></textarea>
+      <h2>Registrar nuevo expediente</h2>
+      <form method="POST" action="" enctype="multipart/form-data">
+          <label>Paciente:</label>
+          <select name="id_paciente" required>
+              <option value="">Seleccione...</option>
+              <?php
+              $res = $conexion->query("SELECT * FROM pacientes ORDER BY nombre ASC");
+              while($p = $res->fetch_assoc()){
+                  echo "<option value='{$p['id_paciente']}'>{$p['nombre']}</option>";
+              }
+              ?>
+          </select>
 
-    <label>Archivo (PDF o imagen):</label>
-    <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
+          <label>Descripción:</label>
+          <textarea name="descripcion" required></textarea>
 
-    <label>Fecha de subida:</label>
-    <input type="date" name="fecha_subida" required>
+          <label>Archivo (PDF o imagen):</label>
+          <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
 
-    <button class="btn" name="guardar">Guardar expediente</button>
-</form>
+          <button class="btn" name="guardar">Guardar expediente</button>
+      </form>
 
-<?php
-// === GUARDAR EXPEDIENTE ===
-if(isset($_POST['guardar'])){
-    $id_p = $_POST['id_paciente'];
-    $desc = $_POST['descripcion'];
-    $fecha = $_POST['fecha_subida'];
+      <?php
+      // === GUARDAR EXPEDIENTE ===
+      if(isset($_POST['guardar'])){
+          $id_p = $_POST['id_paciente'];
+          $desc = $_POST['descripcion'];
+          // Generar fecha y hora actual automáticamente
+          $fecha_actual = date('Y-m-d H:i:s');
+          // === Guardar archivo ===
+          $nombreArchivo = $_FILES['archivo']['name'];
+          if(!is_dir("uploads")) mkdir("uploads");
+          $ruta = "uploads/" . time() . "_" . basename($nombreArchivo);
+          move_uploaded_file($_FILES['archivo']['tmp_name'], $ruta);
 
-    // === Guardar archivo ===
-    $nombreArchivo = $_FILES['archivo']['name'];
-    if(!is_dir("uploads")) mkdir("uploads");
-    $ruta = "uploads/" . time() . "_" . basename($nombreArchivo);
-    move_uploaded_file($_FILES['archivo']['tmp_name'], $ruta);
+          // === Insertar en BD ===
+          $stmt = $conexion->prepare("
+            INSERT INTO expedientes (id_paciente, descripcion, archivo, fecha_subida)
+            VALUES (?, ?, ?, ?)
+          ");
+          $stmt->bind_param("isss", $id_p, $desc, $ruta, $fecha_actual);
+          $stmt->execute();
+          echo "<script>alert('Expediente guardado correctamente');window.location='form_expediente.php';</script>";
+      }
+      ?>
 
-    // === Insertar en BD ===
-    $stmt = $conexion->prepare("INSERT INTO expedientes (id_paciente, descripcion, archivo, fecha_subida) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $id_p, $desc, $ruta, $fecha);
-    $stmt->execute();
+      <!-- ===================== LISTA DE EXPEDIENTES ===================== -->
+      <h2>📁 Expedientes registrados</h2>
+      <table class="tabla-inventario">
+      <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Descripción</th>
+        <th>Archivo</th>
+        <th>Fecha de subida</th>
+      </tr>
 
-    echo "<script>alert('Expediente guardado correctamente');window.location='index.php?page=expediente';</script>";
-}
-?>
-
-<!-- ===================== LISTA DE EXPEDIENTES ===================== -->
-<h2>📁 Expedientes registrados</h2>
-<table>
-<tr>
-  <th>ID</th>
-  <th>Paciente</th>
-  <th>Descripción</th>
-  <th>Archivo</th>
-  <th>Fecha de subida</th>
-</tr>
-
-<?php
+     <?php
 $sql = "SELECT e.id_expediente, p.nombre AS paciente, e.descripcion, e.archivo, e.fecha_subida
         FROM expedientes e
         JOIN pacientes p ON e.id_paciente = p.id_paciente
         ORDER BY e.fecha_subida DESC";
 $res = $conexion->query($sql);
-
-if($res->num_rows > 0){
-    while($row = $res->fetch_assoc()){
-        $archivo = $row['archivo'] ? "<a class='link' href='{$row['archivo']}' target='_blank'>Ver archivo</a>" : "—";
-        echo "<tr>
-                <td>{$row['id_expediente']}</td>
-                <td>{$row['paciente']}</td>
-                <td>{$row['descripcion']}</td>
-                <td>$archivo</td>
-                <td>{$row['fecha_subida']}</td>
-              </tr>";
-    }
-} else {
-    echo "<tr><td colspan='5'>No hay expedientes registrados</td></tr>";
-}
 ?>
-</table>
+
+<?php if ($res && $res->num_rows > 0): ?>
+  <?php while ($row = $res->fetch_assoc()): ?>
+    <tr>
+      <td><?= $row['id_expediente'] ?></td>
+      <td><?= htmlspecialchars($row['paciente']) ?></td>
+      <td><?= htmlspecialchars($row['descripcion']) ?></td>
+      <td>
+        <?php if (!empty($row['archivo'])): ?>
+          <a class="link" href="<?= htmlspecialchars($row['archivo']) ?>" target="_blank">Ver archivo</a>
+        <?php else: ?>
+          —
+        <?php endif; ?>
+      </td>
+      <td><?= date('d-m-Y H:i', strtotime($row['fecha_subida'])) ?> hrs</td>
+    </tr>
+  <?php endwhile; ?>
+<?php else: ?>
+  <tr><td colspan="5">No hay expedientes registrados</td></tr>
+<?php endif; ?>
+
+      </table>
+
+    </div>
+  </div>
 
 </body>
 </html>

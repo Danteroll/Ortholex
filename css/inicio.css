@@ -11,7 +11,7 @@ body {
 /* === Barra superior === */
 .topbar {
   background-color: #eec4c5;
-  height: 20vh;
+  height: 15vh;
   width: 100%;
   position: fixed;
   top: 0;
@@ -44,7 +44,7 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: calc(20vh + 40px); /* 🔹 Más espacio debajo de la franja superior */
+  padding-top: calc(15vh + 0px); /* 🔹 Más espacio debajo de la franja superior */
   position: fixed;
   left: 0;
   top: 0;
@@ -75,8 +75,8 @@ body {
 /* === Botones del menú lateral (sidebar) === */
 .menu li {
   width: 90%;                /* Botones más anchos */
-  padding: 20px 15px;        /* Más altos */
-  margin: 10px 0;            /* Mayor separación entre ellos */
+  padding: 20px 10px;        /* Más altos */
+  margin: 5px 0;            /* Mayor separación entre ellos */
   cursor: pointer;
   color: white;
   transition: 0.3s;
@@ -260,6 +260,7 @@ button:active,
 .btn-modificar,
 .btn-agregar {
   min-width: 160px;
+  min-height: 40px;
   text-align: center;
 }
 

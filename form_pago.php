@@ -1,139 +1,268 @@
 <?php
 include("conexion.php");
+date_default_timezone_set('America/Mexico_City');
 
-// Registrar nuevo pago
+// 🧾 Registrar nuevo pago
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $paciente = $_POST['paciente'];
-    $tratamiento = $_POST['tratamiento'];
-    $monto = $_POST['monto'];
+    $id_cita = intval($_POST['id_cita']);
+    $monto = floatval($_POST['monto']);
     $fecha_pago = $_POST['fecha_pago'];
-    $metodo = $_POST['metodo'];
+    $metodo = $_POST['metodo_pago'];
 
-    $stmt = $conexion->prepare("INSERT INTO pagos (paciente, tratamiento, monto, fecha_pago, metodo, fecha_registro)
-                                VALUES (?, ?, ?, ?, ?, NOW())");
-    $stmt->bind_param("ssdss", $paciente, $tratamiento, $monto, $fecha_pago, $metodo);
+    // 🧠 Obtenemos los IDs reales desde la cita seleccionada
+    $query_cita = $conexion->prepare("
+        SELECT id_paciente, id_tratamiento 
+        FROM citas 
+        WHERE id_cita = ?
+    ");
+    $query_cita->bind_param("i", $id_cita);
+    $query_cita->execute();
+    $result = $query_cita->get_result();
+    $cita = $result->fetch_assoc();
+    $query_cita->close();
+
+    $id_paciente = $cita['id_paciente'] ?? null;
+    $id_tratamiento = $cita['id_tratamiento'] ?? null;
+
+    // 🧾 Insertar pago con los ID correctos
+    $stmt = $conexion->prepare("
+        INSERT INTO pagos (id_paciente, id_tratamiento, id_cita, monto, metodo_pago, fecha_pago)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ");
+    $stmt->bind_param("iiidss", $id_paciente, $id_tratamiento, $id_cita, $monto, $metodo, $fecha_pago);
 
     if ($stmt->execute()) {
-        echo "<script>alert('Pago registrado correctamente.'); window.location='inicio.php?page=pago';</script>";
+        echo "<script>alert('Pago registrado correctamente.'); window.location='form_pago.php';</script>";
+        exit;
     } else {
         echo "<script>alert('Error al registrar el pago.');</script>";
     }
     $stmt->close();
 }
 
-// Consultar pagos existentes
-$res = $conexion->query("SELECT * FROM pagos ORDER BY fecha_pago DESC");
+// 📋 Consultar pagos existentes
+$res = $conexion->query("
+  SELECT p.id_pago, pa.nombre AS paciente, t.nombre_tratamiento AS tratamiento,
+         p.monto, p.metodo_pago, p.fecha_pago, p.id_cita
+  FROM pagos p
+  LEFT JOIN pacientes pa ON p.id_paciente = pa.id_paciente
+  LEFT JOIN tratamientos t ON p.id_tratamiento = t.id_tratamiento
+  ORDER BY p.fecha_pago DESC
+");
+
 ?>
-
-<div class="inventario-container">
-  <div class="inventario-header">
-    <h2>Historial de Pagos</h2>
-    <button class="btn-modificar" onclick="togglePago()">Nuevo pago</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ortholex — Pagos</title>
+  <link rel="stylesheet" href="css/inicio.css">
+</head>
+<body>
+  <!-- Barra superior -->
+  <div class="topbar">
+    <img src="imagenes/logo" alt="Logo" class="topbar-logo">
   </div>
 
-  <!-- 💳 Formulario de registro de pago -->
-  <div class="form-box" id="nuevoPago" style="display:none;">
-    <form method="POST">
-      <h3>Registrar nuevo pago</h3>
-
-      <div class="input-group">
-        <label for="paciente">Nombre del paciente:</label>
-        <input type="text" id="paciente" name="paciente" required>
-      </div>
-
-      <div class="input-group">
-        <label for="tratamiento">Tratamiento:</label>
-        <input type="text" id="tratamiento" name="tratamiento" required>
-      </div>
-
-      <div class="input-group">
-        <label for="monto">Monto ($):</label>
-        <input type="number" id="monto" name="monto" step="0.01" required>
-      </div>
-
-      <div class="input-group">
-        <label for="fecha_pago">Fecha de pago:</label>
-        <input type="date" id="fecha_pago" name="fecha_pago" required>
-      </div>
-
-      <div class="input-group">
-        <label for="metodo">Método de pago:</label>
-        <select id="metodo" name="metodo" required>
-          <option value="">Seleccione...</option>
-          <option value="Efectivo">Efectivo</option>
-          <option value="Tarjeta">Tarjeta</option>
-          <option value="Transferencia">Transferencia</option>
-        </select>
-      </div>
-
-      <div class="buttons">
-        <button type="submit" class="btn-guardar">Guardar</button>
-        <button type="button" class="btn-cancelar" onclick="togglePago()">Cancelar</button>
-      </div>
-    </form>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <ul class="menu">
+      <li><a href="form_cita.php">Citas</a></li>
+      <li><a href="pacientes.php" class="active">Pacientes</a></li>
+      <li><a href="form_expediente.php">Expedientes</a></li>
+      <li><a href="form_inventario.php">Inventario</a></li>
+      <li><a href="form_pago.php">Pagos</a></li>
+      <li><a href="tratamientos.php">Tratamientos</a></li>
+    </ul>
   </div>
 
-  <!-- 📋 Tabla de pagos -->
-  <div class="tabla-inventario">
-    <table>
-      <tr>
-        <th>ID</th>
-        <th>Paciente</th>
-        <th>Tratamiento</th>
-        <th>Monto</th>
-        <th>Fecha de pago</th>
-        <th>Método</th>
-      </tr>
+  <!-- Contenido principal -->
+  <div class="main">
+    <div class="content">
 
-      <?php if ($res && $res->num_rows > 0): ?>
-        <?php while ($row = $res->fetch_assoc()): ?>
-          <tr>
-            <td><?php echo $row['id_pago']; ?></td>
-            <td><?php echo htmlspecialchars($row['paciente']); ?></td>
-            <td><?php echo htmlspecialchars($row['tratamiento']); ?></td>
-            <td>$<?php echo number_format($row['monto'], 2); ?></td>
-            <td><?php echo htmlspecialchars($row['fecha_pago']); ?></td>
-            <td><?php echo htmlspecialchars($row['metodo']); ?></td>
-          </tr>
-        <?php endwhile; ?>
-      <?php else: ?>
-        <tr>
-          <td colspan="6" style="text-align:center;padding:20px;color:#555;">
-            No hay pagos registrados.
-          </td>
-        </tr>
-      <?php endif; ?>
-    </table>
-  </div>
+      <div class="inventario-container">
+        <div class="inventario-header">
+  <h2>Historial de Pagos</h2>
+  <button id="btnNuevoPago" class="btn-modificar" onclick="togglePago()">Nuevo pago</button>
+</div>
+
+<!-- 💳 Formulario de registro de pago -->
+<div class="form-box" id="nuevoPago" style="display:none;">
+  <form method="POST">
+    <h3>Registrar nuevo pago</h3>
+
+    <div class="input-group">
+      <label for="id_cita">Seleccionar cita:</label>
+      <select id="id_cita" name="id_cita" required onchange="rellenarCampos()">
+        <option value="">Seleccione una cita...</option>
+        <?php
+        $citas = $conexion->query("
+  SELECT c.id_cita, p.nombre AS paciente, 
+         t.nombre_tratamiento AS tratamiento, 
+         t.costo AS precio_tratamiento,
+         c.fecha, c.hora
+  FROM citas c
+  JOIN pacientes p ON c.id_paciente = p.id_paciente
+  LEFT JOIN tratamientos t ON c.id_tratamiento = t.id_tratamiento
+  WHERE c.estado IN ('pendiente','realizada')
+  ORDER BY c.fecha DESC, c.hora ASC
+");
+if ($citas->num_rows > 0) {
+  while ($c = $citas->fetch_assoc()) {
+    $tratamiento = $c['tratamiento'] ?? 'Sin tratamiento';
+    $precio = $c['precio_tratamiento'] ?? '';
+    echo "<option value='{$c['id_cita']}'
+                data-paciente='".htmlspecialchars($c['paciente'])."'
+                data-tratamiento='".htmlspecialchars($tratamiento)."'
+                data-precio='".htmlspecialchars($precio)."'>
+          {$c['paciente']} — {$tratamiento} ({$c['fecha']} {$c['hora']})
+        </option>";
+  } // ✅ esta llave cierra el while correctamente
+} else {
+  echo "<option value=''>No hay citas disponibles</option>";
+}
+
+        ?>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Paciente:</label>
+      <input type="text" id="paciente" name="paciente" readonly required>
+    </div>
+
+    <div class="input-group">
+      <label>Tratamiento:</label>
+      <input type="text" id="tratamiento" name="tratamiento" readonly required>
+    </div>
+
+    <div class="input-group">
+      <label>Monto ($):</label>
+      <input type="number" id="monto" name="monto" step="0.01" required>
+    </div>
+
+    <div class="input-group">
+      <label>Fecha de pago:</label>
+      <input type="date" id="fecha_pago" name="fecha_pago" value="<?= date('Y-m-d') ?>" required>
+    </div>
+
+    <div class="input-group">
+      <label>Método de pago:</label>
+      <select id="metodo" name="metodo" required>
+        <option value="">Seleccione...</option>
+        <option value="Efectivo">Efectivo</option>
+        <option value="Tarjeta">Tarjeta</option>
+        <option value="Transferencia">Transferencia</option>
+      </select>
+    </div>
+
+    <div class="buttons">
+      <button type="submit" class="btn-guardar">Guardar</button>
+      <button type="button" class="btn-cancelar" onclick="togglePago()">Cancelar</button>
+    </div>
+  </form>
 </div>
 
 <script>
 function togglePago() {
   const form = document.getElementById('nuevoPago');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  // ✅ Cambiar visibilidad del formulario
+  if (form.style.display === 'none' || form.style.display === '') {
+    form.style.display = 'block';
+    window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+  } else {
+    form.style.display = 'none';
+  }
 }
+
+
+function rellenarCampos() {
+  const select = document.getElementById('id_cita');
+  const option = select.options[select.selectedIndex];
+  if (!option) return;
+
+  const paciente = option.getAttribute('data-paciente') || '';
+  const tratamiento = option.getAttribute('data-tratamiento') || '';
+  const precio = option.getAttribute('data-precio') || '';
+
+  document.getElementById('paciente').value = paciente;
+  document.getElementById('tratamiento').value = tratamiento;
+  document.getElementById('monto').value = precio;
+}
+
+
 </script>
 
-<style>
-/* --- Asegura que el select se vea igual que los inputs del sistema Ortholex --- */
-.input-group select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  font-family: 'Segoe UI', sans-serif;
-  color: #333;
-  background-color: #fff;
-  transition: border-color 0.3s, box-shadow 0.3s;
-  appearance: none; /* quita la flecha predeterminada del sistema */
-}
+<!-- 📋 Tabla de pagos -->
+<div class="tabla-inventario">
+  <table>
+    <tr>
+      <th>ID</th>
+      <th>Paciente</th>
+      <th>Tratamiento</th>
+      <th>Monto</th>
+      <th>Fecha de pago</th>
+      <th>Método</th>
+      <th>Cita</th> <!-- 👈 NUEVA COLUMNA -->
+    </tr>
 
-.input-group select:focus {
-  border-color: #a16976;
-  box-shadow: 0 0 4px rgba(161,105,118,0.4);
-  outline: none;
-}
-</style>
+    <?php if ($res && $res->num_rows > 0): ?>
+      <?php while ($row = $res->fetch_assoc()): ?>
+        <tr>
+          <td><?= $row['id_pago'] ?></td>
+          <td><?= htmlspecialchars($row['paciente']) ?></td>
+          <td><?= htmlspecialchars($row['tratamiento']) ?></td>
+          <td>$<?= number_format($row['monto'], 2) ?></td>
+          <td><?= date('d-m-Y', strtotime($row['fecha_pago'])) ?></td>
+          <td><?= htmlspecialchars($row['metodo_pago']) ?></td>
+
+          <!-- 👇 Mostrar número de cita vinculada -->
+          <td>
+            <?php if (!empty($row['id_cita'])): ?>
+              <a href="form_cita.php?id=<?= $row['id_cita'] ?>">#<?= $row['id_cita'] ?></a>
+            <?php else: ?>
+              —
+            <?php endif; ?>
+          </td>
+        </tr>
+      <?php endwhile; ?>
+    <?php else: ?>
+      <tr>
+        <td colspan="7" style="text-align:center;padding:20px;color:#555;">
+          No hay pagos registrados.
+        </td>
+      </tr>
+    <?php endif; ?>
+  </table>
+</div>
+
+
+
+  <style>
+  .input-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'Segoe UI', sans-serif;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    appearance: none;
+  }
+
+  .input-group select:focus {
+    border-color: #a16976;
+    box-shadow: 0 0 4px rgba(161,105,118,0.4);
+    outline: none;
+  }
+
+  table th, table td {
+    text-align: center;
+  }
+  </style>
 
 <?php $conexion->close(); ?>
+</body>
+</html>

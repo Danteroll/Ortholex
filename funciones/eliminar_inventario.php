@@ -39,12 +39,12 @@ if ($nuevaCantidad == 0) {
     $delete = $conexion->prepare("DELETE FROM inventario WHERE id_objeto = ?");
     $delete->bind_param("i", $articulo['id_objeto']);
     $delete->execute();
-    echo "<script>alert('Artículo eliminado completamente del inventario.'); window.location='../inicio.php?page=inventario';</script>";
+    echo "<script>alert('Artículo eliminado completamente del inventario.'); window.location='../form_inventario.php?page=inventario';</script>";
 } else {
     $update = $conexion->prepare("UPDATE inventario SET cantidad = ?, fecha_modificacion = NOW() WHERE id_objeto = ?");
     $update->bind_param("ii", $nuevaCantidad, $articulo['id_objeto']);
     $update->execute();
-    echo "<script>alert('Cantidad actualizada correctamente.'); window.location='../inicio.php?page=inventario';</script>";
+    echo "<script>alert('Cantidad actualizada correctamente.'); window.location='../form_inventario.php?page=inventario';</script>";
 }
 
 $stmt->close();

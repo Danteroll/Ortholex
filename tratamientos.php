@@ -1,128 +1,153 @@
 <?php
 include("conexion.php");
-
-// --- CONTROL DE ACCIONES ---
-$accion = $_GET['accion'] ?? 'listar';
+date_default_timezone_set('America/Mexico_City');
 
 // === AGREGAR NUEVO ===
-if ($accion == 'agregar' && $_SERVER['REQUEST_METHOD'] == 'POST') {
-    $nombre = $_POST['nombre_tratamiento'];
-    $desc = $_POST['descripcion'];
-    $costo = $_POST['costo'];
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_tratamiento'])) {
+  $nombre = trim($_POST['nombre_tratamiento']);
+  $desc = trim($_POST['descripcion']);
+  $precio = floatval($_POST['costo']);
 
-    $stmt = $conexion->prepare("INSERT INTO tratamientos (nombre_tratamiento, descripcion, costo) VALUES (?,?,?)");
-    $stmt->bind_param("ssd", $nombre, $desc, $costo);
-    $stmt->execute();
+  $stmt = $conexion->prepare("INSERT INTO tratamientos (nombre_tratamiento, descripcion, costo) VALUES (?, ?, ?)");
+  $stmt->bind_param("ssd", $nombre, $desc, $precio);
+  $stmt->execute();
 
-    header("Location: tratamientos.php?msg=agregado");
-    exit;
+  echo "<script>alert('✅ Tratamiento agregado correctamente'); window.location='tratamientos.php';</script>";
+  exit;
 }
 
-// === ACTUALIZAR ===
-if ($accion == 'editar' && $_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = $_POST['id_tratamiento'];
-    $nombre = $_POST['nombre_tratamiento'];
-    $desc = $_POST['descripcion'];
-    $costo = $_POST['costo'];
+// === EDITAR ===
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_tratamiento'])) {
+  $id = intval($_POST['id_tratamiento']);
+  $nombre = trim($_POST['nombre_tratamiento']);
+  $desc = trim($_POST['descripcion']);
+  $precio = floatval($_POST['costo']);
 
-    $stmt = $conexion->prepare("UPDATE tratamientos SET nombre_tratamiento=?, descripcion=?, costo=? WHERE id_tratamiento=?");
-    $stmt->bind_param("ssdi", $nombre, $desc, $costo, $id);
-    $stmt->execute();
+  $stmt = $conexion->prepare("UPDATE tratamientos SET nombre_tratamiento=?, descripcion=?, costo=? WHERE id_tratamiento=?");
+  $stmt->bind_param("ssdi", $nombre, $desc, $precio, $id);
+  $stmt->execute();
 
-    header("Location: tratamientos.php?msg=actualizado");
-    exit;
+  echo "<script>alert('✏️ Tratamiento actualizado correctamente'); window.location='tratamientos.php';</script>";
+  exit;
 }
 
 // === ELIMINAR ===
-if ($accion == 'eliminar' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $conexion->query("DELETE FROM tratamientos WHERE id_tratamiento=$id");
-    header("Location: tratamientos.php?msg=eliminado");
-    exit;
+if (isset($_GET['eliminar'])) {
+  $id = intval($_GET['eliminar']);
+  $conexion->query("DELETE FROM tratamientos WHERE id_tratamiento=$id");
+  echo "<script>alert('🗑️ Tratamiento eliminado'); window.location='tratamientos.php';</script>";
+  exit;
 }
 
-// === CARGAR DATOS PARA EDITAR ===
-if ($accion == 'form_editar' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $res = $conexion->query("SELECT * FROM tratamientos WHERE id_tratamiento=$id");
-    $trat = $res->fetch_assoc();
-}
+// === LISTAR ===
+$tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratamiento ASC");
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Gestión de Tratamientos</title>
-<link rel="stylesheet" href="css/estilo.css">
+  <meta charset="UTF-8">
+  <title>Ortholex — Tratamientos</title>
+  <link rel="stylesheet" href="css/inicio.css">
 </head>
 <body>
 
-<h2>🦷 Tratamientos</h2>
+<!-- Barra superior -->
+<div class="topbar">
+  <img src="imagenes/logo" alt="Logo" class="topbar-logo">
+</div>
 
-<?php
-// Mensajes
-if (isset($_GET['msg'])) {
-  $m = $_GET['msg'];
-  if ($m == 'agregado') echo "<p style='color:green'>✅ Tratamiento agregado</p>";
-  if ($m == 'actualizado') echo "<p style='color:green'>✅ Tratamiento actualizado</p>";
-  if ($m == 'eliminado') echo "<p style='color:red'>🗑️ Tratamiento eliminado</p>";
+<!-- Sidebar -->
+  <div class="sidebar">
+    <ul class="menu">
+      <li><a href="form_cita.php">Citas</a></li>
+      <li><a href="pacientes.php" class="active">Pacientes</a></li>
+      <li><a href="form_expediente.php">Expedientes</a></li>
+      <li><a href="form_inventario.php">Inventario</a></li>
+      <li><a href="form_pago.php">Pagos</a></li>
+      <li><a href="tratamientos.php">Tratamientos</a></li>
+    </ul>
+  </div>
+
+<!-- Contenido principal -->
+<div class="main">
+  <div class="content">
+    <div class="inventario-container">
+      <div class="inventario-header">
+        <h2>Gestión de Tratamientos</h2>
+        <button class="btn-modificar" onclick="toggleForm()">Nuevo tratamiento</button>
+      </div>
+
+      <!-- 🦷 Formulario nuevo tratamiento -->
+      <div class="form-box" id="nuevoTratamiento" style="display:none;">
+        <form method="POST">
+          <h3>Registrar nuevo tratamiento</h3>
+
+          <div class="input-group">
+            <label>Nombre:</label>
+            <input type="text" name="nombre_tratamiento" required>
+          </div>
+
+          <div class="input-group">
+            <label>Descripción:</label>
+            <textarea name="descripcion" rows="3"></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Precio ($):</label>
+            <input type="number" step="0.01" name="precio" required>
+          </div>
+
+          <div class="buttons">
+            <button type="submit" name="guardar_tratamiento" class="btn-guardar">Guardar</button>
+            <button type="button" class="btn-cancelar" onclick="toggleForm()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 📋 Tabla de tratamientos -->
+      <div class="tabla-inventario">
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Descripción</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+          </tr>
+
+          <?php if ($tratamientos->num_rows > 0): ?>
+            <?php while ($row = $tratamientos->fetch_assoc()): ?>
+              <tr>
+                <form method="POST">
+                  <td><?= $row['id_tratamiento'] ?></td>
+                  <td><input type="text" name="nombre_tratamiento" value="<?= htmlspecialchars($row['nombre_tratamiento']) ?>" required></td>
+                  <td><input type="text" name="descripcion" value="<?= htmlspecialchars($row['descripcion']) ?>"></td>
+                  <td><input type="number" step="0.01" name="precio" value="<?= $row['costo'] ?>" required></td>
+                  <td>
+                    <input type="hidden" name="id_tratamiento" value="<?= $row['id_tratamiento'] ?>">
+                    <button type="submit" name="editar_tratamiento" class="btn-modificar">💾 Guardar</button>
+                    <a href="tratamientos.php?eliminar=<?= $row['id_tratamiento'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este tratamiento?')">🗑️</a>
+                  </td>
+                </form>
+              </tr>
+            <?php endwhile; ?>
+          <?php else: ?>
+            <tr><td colspan="5" style="text-align:center;">No hay tratamientos registrados.</td></tr>
+          <?php endif; ?>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleForm() {
+  const form = document.getElementById('nuevoTratamiento');
+  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
 }
-?>
+</script>
 
-<?php if ($accion == 'listar'): ?>
-
-  <a href="tratamientos.php?accion=form_agregar">➕ Agregar nuevo tratamiento</a>
-  <br><br>
-
-  <table border="1" cellpadding="6">
-    <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Costo</th><th>Acciones</th></tr>
-    <?php
-    $result = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratamiento");
-    while($row = $result->fetch_assoc()): ?>
-      <tr>
-        <td><?= $row['id_tratamiento'] ?></td>
-        <td><?= htmlspecialchars($row['nombre_tratamiento']) ?></td>
-        <td><?= htmlspecialchars($row['descripcion']) ?></td>
-        <td>$<?= number_format($row['costo'],2) ?></td>
-        <td>
-          <a href="tratamientos.php?accion=form_editar&id=<?= $row['id_tratamiento'] ?>">✏️ Editar</a> |
-          <a href="tratamientos.php?accion=eliminar&id=<?= $row['id_tratamiento'] ?>" onclick="return confirm('¿Eliminar este tratamiento?')">🗑️ Eliminar</a>
-        </td>
-      </tr>
-    <?php endwhile; ?>
-  </table>
-
-<?php elseif ($accion == 'form_agregar'): ?>
-
-  <h3>Agregar tratamiento</h3>
-  <form method="POST" action="tratamientos.php?accion=agregar">
-    <label>Nombre:</label>
-    <input name="nombre_tratamiento" required><br>
-    <label>Descripción:</label>
-    <textarea name="descripcion"></textarea><br>
-    <label>Costo:</label>
-    <input type="number" step="0.01" name="costo" required><br>
-    <button type="submit">Guardar</button>
-    <a href="tratamientos.php">Cancelar</a>
-  </form>
-
-<?php elseif ($accion == 'form_editar'): ?>
-
-  <h3>Editar tratamiento</h3>
-  <form method="POST" action="tratamientos.php?accion=editar">
-    <input type="hidden" name="id_tratamiento" value="<?= $trat['id_tratamiento'] ?>">
-    <label>Nombre:</label>
-    <input name="nombre_tratamiento" value="<?= htmlspecialchars($trat['nombre_tratamiento']) ?>" required><br>
-    <label>Descripción:</label>
-    <textarea name="descripcion"><?= htmlspecialchars($trat['descripcion']) ?></textarea><br>
-    <label>Costo:</label>
-    <input type="number" step="0.01" name="costo" value="<?= $trat['costo'] ?>" required><br>
-    <button type="submit">Actualizar</button>
-    <a href="tratamientos.php">Cancelar</a>
-  </form>
-
-<?php endif; ?>
-
+<?php $conexion->close(); ?>
 </body>
 </html>

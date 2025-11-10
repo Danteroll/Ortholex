@@ -18,7 +18,7 @@ $stmt = $conexion->prepare($sql);
 $stmt->bind_param('iissss', $id_paciente, $id_tratamiento, $fecha, $hora, $motivo, $estado);
 
 if ($stmt->execute()) {
-  echo "<script>alert('Cita registrada correctamente'); window.location='inicio.php?page=citas';</script>";
+  echo "<script>alert('Cita registrada correctamente'); window.location='../inicio.php?page=citas';</script>";
 } else {
   die('Error al guardar cita: '.$stmt->error);
 }
