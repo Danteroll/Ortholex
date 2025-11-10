@@ -78,7 +78,7 @@ date_default_timezone_set('America/Mexico_City');
         </form>
       </div>
 
-      <!-- Formulario ELIMINAR -->
+
       <!-- Formulario ELIMINAR -->
 <div id="formEliminar" class="form-box" style="display:none;">
   <h3>Eliminar artículo del inventario</h3>
