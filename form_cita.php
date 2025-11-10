@@ -79,7 +79,7 @@ if ($res && $res->num_rows > 0) {
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Gestión de Citas</title>
+<title>Ortholex — Citas</title>
 <link rel="stylesheet" href="css/inicio.css">
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
