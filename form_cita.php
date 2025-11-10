@@ -1,4 +1,4 @@
-<?php
+<?php 
 include("conexion.php");
 
 // 🗑️ Eliminar todas las citas
@@ -40,27 +40,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_cita'])) {
     exit;
 }
 
-// ✏️ Actualizar hora o estado
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['actualizar_cita'])) {
-    $id_cita = intval($_POST['id_cita']);
-    $hora = $_POST['hora'];
-    $estado = $_POST['estado'];
-    $fecha = $_POST['fecha'];
-    $stmt = $conexion->prepare("UPDATE citas SET fecha=?, hora=?, estado=? WHERE id_cita=?");
-    $stmt->bind_param("sssi", $fecha, $hora, $estado, $id_cita);
-    $stmt->execute();
-    $stmt->close();
-    echo "<script>alert('Cita actualizada correctamente.'); window.location='form_cita.php';</script>";
-    exit;
-}
-
-// 📋 Obtener datos para selects
+// 📋 Obtener datos
 $pacientes = $conexion->query("SELECT id_paciente, nombre FROM pacientes ORDER BY nombre");
-$tratamientos = $conexion->query("SELECT id_tratamiento, nombre_tratamiento, costo FROM tratamientos ORDER BY nombre_tratamiento");
+$tratamientos = $conexion->query("SELECT id_tratamiento, nombre_tratamiento FROM tratamientos ORDER BY nombre_tratamiento");
 
 // 📋 Obtener citas registradas
 $res = $conexion->query("
-    SELECT c.id_cita, p.nombre AS paciente, t.nombre_tratamiento AS tratamiento, t.costo,
+    SELECT c.id_cita, p.nombre AS paciente, t.nombre_tratamiento AS tratamiento,
            c.fecha, c.hora, c.estado
     FROM citas c
     LEFT JOIN pacientes p ON c.id_paciente = p.id_paciente
@@ -68,25 +54,23 @@ $res = $conexion->query("
     ORDER BY c.fecha DESC, c.hora ASC
 ");
 
+// 📅 Preparar eventos del calendario
 $citas = [];
 if ($res && $res->num_rows > 0) {
     while ($row = $res->fetch_assoc()) {
-        // Calcular hora final (+1 hora por defecto)
-$hora_final = date('H:i:s', strtotime($row['hora'] . ' +1 hour'));
-
-$citas[] = [
-    "id" => $row['id_cita'],
-    "paciente" => $row['paciente'],
-    "tratamiento" => $row['tratamiento'] ?? 'N/A',
-    "precio" => $row['costo'] ?? 0,
-    "fecha" => $row['fecha'],
-    "hora" => $row['hora'],
-    "estado" => $row['estado'] ?? 'pendiente',
-    "title" => $row['paciente'] . " - " . ($row['tratamiento'] ?? ''),
-    "start" => $row['fecha'] . "T" . $row['hora'],
-    "end"   => $row['fecha'] . "T" . $hora_final   // ✅ duración de 1 hora
-];
-
+        $hora_final = date('H:i:s', strtotime($row['hora'] . ' +1 hour'));
+        $color = match($row['estado']) {
+            'realizada' => '#22c55e',
+            'cancelada' => '#ef4444',
+            default => '#a16976',
+        };
+        $citas[] = [
+            "id" => $row['id_cita'],
+            "title" => $row['paciente'] . " — " . ($row['tratamiento'] ?? 'N/A'),
+            "start" => $row['fecha'] . "T" . $row['hora'],
+            "end" => $row['fecha'] . "T" . $hora_final,
+            "color" => $color
+        ];
     }
 }
 ?>
@@ -98,11 +82,97 @@ $citas[] = [
 <title>Gestión de Citas</title>
 <link rel="stylesheet" href="css/inicio.css">
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css" rel="stylesheet">
-
-<!-- ✅ Scripts FullCalendar (versión global + locales en español) -->
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
 
+<style>
+/* ===== Campos del formulario ===== */
+.form-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+.input-group label {
+  font-weight: 600;
+  color: #1d3557;
+  margin-bottom: 6px;
+}
+.input-group input[type="date"],
+.input-group input[type="time"],
+.input-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccd;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: #a16976;
+  box-shadow: 0 0 4px rgba(161, 105, 118, 0.4);
+}
+
+/* ===== Botones estilo Ortholex ===== */
+.buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.btn-guardar,
+.btn-cancelar {
+  background-color: #a16976;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Segoe UI', sans-serif;
+  transition: 0.25s;
+}
+.btn-guardar:hover,
+.btn-cancelar:hover {
+  background-color: #814c59;
+  transform: scale(1.03);
+}
+
+/* ===== Estilo del calendario ===== */
+.fc-toolbar-title {
+  color: #1d3557 !important;
+  font-weight: bold;
+}
+.fc-button-primary {
+  background-color: #a16976 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+.fc-button-primary:hover {
+  background-color: #814c59 !important;
+}
+.fc-daygrid-day-number {
+  color: #1d3557 !important;
+  font-weight: 500;
+}
+.fc-today {
+  background-color: rgba(161,105,118,0.15) !important;
+}
+.fc {
+  background: #fff !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  padding: 15px;
+}
+</style>
 </head>
 <body>
 
@@ -112,16 +182,16 @@ $citas[] = [
 </div>
 
 <!-- Sidebar -->
-  <div class="sidebar">
-    <ul class="menu">
-      <li><a href="form_cita.php">Citas</a></li>
-      <li><a href="pacientes.php" class="active">Pacientes</a></li>
-      <li><a href="form_expediente.php">Expedientes</a></li>
-      <li><a href="form_inventario.php">Inventario</a></li>
-      <li><a href="form_pago.php">Pagos</a></li>
-      <li><a href="tratamientos.php">Tratamientos</a></li>
-    </ul>
-  </div>
+<div class="sidebar">
+  <ul class="menu">
+    <li><a href="form_cita.php" class="active">Citas</a></li>
+    <li><a href="pacientes.php">Pacientes</a></li>
+    <li><a href="form_expediente.php">Expedientes</a></li>
+    <li><a href="form_inventario.php">Inventario</a></li>
+    <li><a href="form_pago.php">Pagos</a></li>
+    <li><a href="tratamientos.php">Tratamientos</a></li>
+  </ul>
+</div>
 
 <!-- Contenido principal -->
 <div class="main">
@@ -139,7 +209,7 @@ $citas[] = [
     <!-- 🗓️ Formulario nueva cita -->
     <div class="form-box" id="nuevaCita" style="display:none;">
       <form method="POST">
-        <h3>Registrar nueva cita</h3>
+        <h3 style="color:#1d3557;">Registrar nueva cita</h3>
 
         <div class="input-group">
           <label>Paciente:</label>
@@ -156,9 +226,7 @@ $citas[] = [
           <select name="id_tratamiento">
             <option value="">-- Ninguno --</option>
             <?php while($t = $tratamientos->fetch_assoc()) { ?>
-              <option value="<?= $t['id_tratamiento'] ?>">
-                <?= htmlspecialchars($t['nombre_tratamiento']) ?> — $<?= number_format($t['costo'], 2) ?>
-              </option>
+              <option value="<?= $t['id_tratamiento'] ?>"><?= htmlspecialchars($t['nombre_tratamiento']) ?></option>
             <?php } ?>
           </select>
         </div>
@@ -192,15 +260,13 @@ $citas[] = [
     <!-- 🗑️ Formulario eliminar -->
     <div class="form-box" id="formEliminar" style="display:none;">
       <form method="POST">
-        <h3>Eliminar cita</h3>
+        <h3 style="color:#1d3557;">Eliminar cita</h3>
         <div class="input-group">
           <label for="cita_id">Seleccione la cita:</label>
           <select id="cita_id" name="cita_id" required>
             <option value="">Seleccione...</option>
             <?php foreach ($citas as $c): ?>
-              <option value="<?= $c['id']; ?>">
-                <?= htmlspecialchars($c['paciente']." - ".$c['fecha']." ".$c['hora']); ?>
-              </option>
+              <option value="<?= $c['id']; ?>"><?= htmlspecialchars($c['title']); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -218,50 +284,32 @@ $citas[] = [
           <th>ID</th>
           <th>Paciente</th>
           <th>Tratamiento</th>
-          <th>Precio</th>
           <th>Fecha</th>
           <th>Hora</th>
           <th>Estado</th>
-          <th>Acción</th>
         </tr>
-        <?php if (!empty($citas)): ?>
-          <?php foreach ($citas as $row): ?>
+
+        <?php if ($res && $res->num_rows > 0): ?>
+          <?php $res->data_seek(0); while ($row = $res->fetch_assoc()): ?>
             <tr>
-              <form method="POST">
-                <td><?= $row['id']; ?></td>
-                <td><?= htmlspecialchars($row['paciente']); ?></td>
-                <td><?= htmlspecialchars($row['tratamiento']); ?></td>
-                <td>$<?= number_format($row['precio'],2); ?></td>
-                <td>
-                  <input type="date" name="fecha" value="<?= htmlspecialchars($row['fecha']); ?>" required>
-                </td>
-                <td>
-                  <input type="time" name="hora" value="<?= htmlspecialchars($row['hora']); ?>" required>
-                </td>
-                <td>
-                  <select name="estado">
-                    <option value="pendiente" <?= $row['estado']=='pendiente'?'selected':''; ?>>Pendiente</option>
-                    <option value="realizada" <?= $row['estado']=='realizada'?'selected':''; ?>>Realizada</option>
-                    <option value="cancelada" <?= $row['estado']=='cancelada'?'selected':''; ?>>Cancelada</option>
-                  </select>
-                </td>
-                <td>
-                  <input type="hidden" name="id_cita" value="<?= $row['id']; ?>">
-                  <button type="submit" name="actualizar_cita" class="btn-modificar">💾 Guardar</button>
-                </td>
-              </form>
+              <td><?= $row['id_cita']; ?></td>
+              <td><?= htmlspecialchars($row['paciente']); ?></td>
+              <td><?= htmlspecialchars($row['tratamiento']); ?></td>
+              <td><?= date('d/m/Y', strtotime($row['fecha'])); ?></td>
+              <td><?= date('g:i A', strtotime($row['hora'])); ?></td>
+              <td><?= ucfirst($row['estado']); ?></td>
             </tr>
-          <?php endforeach; ?>
+          <?php endwhile; ?>
         <?php else: ?>
-          <tr><td colspan="8" style="text-align:center;padding:20px;">No hay citas registradas.</td></tr>
+          <tr><td colspan="6" style="text-align:center;padding:20px;color:#555;">No hay citas registradas.</td></tr>
         <?php endif; ?>
       </table>
     </div>
 
-    <!-- 📅 Calendario -->
+    <!-- 📅 Calendario Ortholex -->
     <div style="margin-top:40px;">
-      <h3 style="text-align:center;color:#1d3557;">Calendario</h3>
-      <div id="calendar" style="max-width:900px;margin:30px auto;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.1);padding:15px;"></div>
+      <h3 style="text-align:center;color:#1d3557;">Calendario de Citas</h3>
+      <div id="calendar"></div>
     </div>
   </div>
 </div>
@@ -269,67 +317,42 @@ $citas[] = [
 <script>
 function toggleForm() {
   const form = document.getElementById('nuevaCita');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 function toggleEliminar() {
   const form = document.getElementById('formEliminar');
-  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-// Calendario
-
+// === Calendario Ortholex ===
 document.addEventListener('DOMContentLoaded', function () {
   const calendarEl = document.getElementById('calendar');
-  if (!calendarEl) return;
-
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'dayGridMonth',
-    locale: 'es', // 👈 fuerza idioma español
+    locale: 'es',
     height: 'auto',
     events: <?= json_encode($citas, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES); ?>,
-    eventColor: '#a16976',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
-    buttonText: { // 👈 texto personalizado de botones
-      today: 'Hoy',
-      month: 'Mes',
-      week: 'Semana',
-      day: 'Día'
+    buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+    eventDidMount: function(info) {
+      info.el.style.borderRadius = '6px';
+      info.el.style.padding = '4px 6px';
+      info.el.style.fontSize = '13px';
+      info.el.style.color = '#fff';
+      info.el.style.background = `linear-gradient(135deg, ${info.event.backgroundColor}, #814c59)`;
+      info.el.style.border = 'none';
     }
   });
-
   calendar.render();
 });
-
-
 </script>
-
-<style>
-.input-group select, .tabla-inventario select {
-  width: 100%;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 14px;
-}
-.tabla-inventario input[type="time"] {
-  width: 110px;
-  padding: 5px;
-}
-.btn-modificar {
-  background-color: #a16976;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.btn-modificar:hover { background-color: #814c59; }
-</style>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
+
+

@@ -2,24 +2,14 @@
 include("conexion.php");
 date_default_timezone_set('America/Mexico_City');
 
-// === Helpers ===
-function leer_precio($campo) {
-  // Acepta "1.234,56" o "1234,56" o "1234.56"
-  $raw = isset($_POST[$campo]) ? trim($_POST[$campo]) : '';
-  // Quita espacios y separadores de miles comunes
-  $raw = str_replace([' ', ','], ['', '.'], $raw); // "1,234.56" -> "1.234.56" (igual sirve), "1234,56" -> "1234.56"
-  return is_numeric($raw) ? (float)$raw : 0.0;
-}
-
 // === AGREGAR NUEVO ===
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_tratamiento'])) {
   $nombre = trim($_POST['nombre_tratamiento'] ?? '');
   $desc   = trim($_POST['descripcion'] ?? '');
-  // OJO: el input se llama "precio"
-  $precio = leer_precio('precio');
+  $precio = floatval($_POST['precio']);
 
   if ($nombre === '' || $precio <= 0) {
-    echo "<script>alert('Verifica nombre y precio (> 0).'); window.history.back();</script>";
+    echo "<script>alert('Verifica el nombre y precio (> 0).'); window.history.back();</script>";
     exit;
   }
 
@@ -37,8 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_tratamiento']))
   $id     = intval($_POST['id_tratamiento']);
   $nombre = trim($_POST['nombre_tratamiento'] ?? '');
   $desc   = trim($_POST['descripcion'] ?? '');
-  // OJO: el input se llama "precio"
-  $precio = leer_precio('precio');
+  $precio = floatval($_POST['precio']);
 
   if ($id <= 0 || $nombre === '' || $precio <= 0) {
     echo "<script>alert('Verifica ID, nombre y precio (> 0).'); window.history.back();</script>";
@@ -55,13 +44,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_tratamiento']))
 }
 
 // === ELIMINAR ===
-if (isset($_GET['eliminar'])) {
-  $id = intval($_GET['eliminar']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['eliminar_tratamiento'])) {
+  $id = intval($_POST['id_tratamiento']);
   if ($id > 0) {
     $conexion->query("DELETE FROM tratamientos WHERE id_tratamiento=$id");
+    echo "<script>alert('🗑️ Tratamiento eliminado correctamente'); window.location='tratamientos.php';</script>";
+    exit;
+  } else {
+    echo "<script>alert('Seleccione un tratamiento válido.');</script>";
   }
-  echo "<script>alert('🗑️ Tratamiento eliminado'); window.location='tratamientos.php';</script>";
-  exit;
 }
 
 // === LISTAR ===
@@ -96,12 +87,16 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
     <div class="inventario-container">
       <div class="inventario-header">
         <h2>Gestión de Tratamientos</h2>
-        <button class="btn-modificar" onclick="toggleForm()">Nuevo tratamiento</button>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-modificar" onclick="toggleNuevo()">Nuevo tratamiento</button>
+          <button class="btn-modificar" onclick="toggleEditar()">Modificar tratamiento</button>
+          <button class="btn-eliminar" onclick="toggleEliminar()">Eliminar tratamiento</button>
+        </div>
       </div>
 
-      <!-- Form nuevo -->
-      <div class="form-box" id="nuevoTratamiento" style="display:none;">
-        <form method="POST" autocomplete="off">
+      <!-- 🆕 Formulario: nuevo tratamiento -->
+      <div class="form-box" id="formNuevo" style="display:none;">
+        <form method="POST">
           <h3>Registrar nuevo tratamiento</h3>
 
           <div class="input-group">
@@ -111,22 +106,100 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
 
           <div class="input-group">
             <label>Descripción:</label>
-            <textarea name="descripcion" rows="3"></textarea>
+            <textarea name="descripcion" rows="3" placeholder="Escribe una breve descripción..."></textarea>
           </div>
 
           <div class="input-group">
             <label>Precio ($):</label>
-            <input type="text" name="precio" inputmode="decimal" placeholder="Ej. 750 o 750.50" required>
+            <input type="number" step="0.01" name="precio" required>
           </div>
 
           <div class="buttons">
             <button type="submit" name="guardar_tratamiento" class="btn-guardar">Guardar</button>
-            <button type="button" class="btn-cancelar" onclick="toggleForm()">Cancelar</button>
+            <button type="button" class="btn-cancelar" onclick="toggleNuevo()">Cancelar</button>
           </div>
         </form>
       </div>
 
-      <!-- Tabla -->
+      <!-- ✏️ Formulario: editar tratamiento -->
+      <div class="form-box" id="formEditar" style="display:none;">
+        <form method="POST">
+          <h3>Modificar tratamiento</h3>
+
+          <div class="input-group">
+            <label for="id_tratamiento">Seleccionar tratamiento:</label>
+            <select id="id_tratamiento" name="id_tratamiento" required onchange="rellenarDatos()">
+              <option value="">Seleccione...</option>
+              <?php
+              if ($tratamientos && $tratamientos->num_rows > 0) {
+                $tratamientos->data_seek(0);
+                while ($t = $tratamientos->fetch_assoc()) {
+                  echo "<option value='{$t['id_tratamiento']}'
+                            data-nombre='".htmlspecialchars($t['nombre_tratamiento'])."'
+                            data-desc='".htmlspecialchars($t['descripcion'])."'
+                            data-precio='".number_format((float)$t['costo'], 2, '.', '')."'>
+                            {$t['nombre_tratamiento']} — $".number_format((float)$t['costo'], 2)."
+                          </option>";
+                }
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label>Nombre:</label>
+            <input type="text" id="nombre_tratamiento" name="nombre_tratamiento" required>
+          </div>
+
+          <div class="input-group">
+            <label>Descripción:</label>
+            <textarea id="descripcion" name="descripcion" rows="3"></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Precio ($):</label>
+            <input type="number" step="0.01" id="precio" name="precio" required>
+          </div>
+
+          <div class="buttons">
+            <button type="submit" name="editar_tratamiento" class="btn-guardar">Guardar cambios</button>
+            <button type="button" class="btn-cancelar" onclick="toggleEditar()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 🗑️ Formulario: eliminar tratamiento -->
+      <div class="form-box" id="formEliminar" style="display:none;">
+        <form method="POST">
+          <h3>Eliminar tratamiento</h3>
+
+          <div class="input-group">
+            <label for="id_tratamiento_eliminar">Seleccione el tratamiento:</label>
+            <select id="id_tratamiento_eliminar" name="id_tratamiento" required>
+              <option value="">Seleccione...</option>
+              <?php
+              $resEliminar = $conexion->query("SELECT id_tratamiento, nombre_tratamiento, costo FROM tratamientos ORDER BY nombre_tratamiento ASC");
+              if ($resEliminar && $resEliminar->num_rows > 0) {
+                while ($t = $resEliminar->fetch_assoc()) {
+                  echo "<option value='{$t['id_tratamiento']}'>
+                          {$t['nombre_tratamiento']} — $".number_format((float)$t['costo'], 2)."
+                        </option>";
+                }
+              } else {
+                echo "<option value=''>No hay tratamientos registrados</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div class="buttons">
+            <button type="submit" name="eliminar_tratamiento" class="btn-eliminar">Eliminar</button>
+            <button type="button" class="btn-cancelar" onclick="toggleEliminar()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!--Tabla de tratamientos -->
       <div class="tabla-inventario">
         <table>
           <tr>
@@ -134,27 +207,23 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
             <th>Nombre</th>
             <th>Descripción</th>
             <th>Precio</th>
-            <th>Acciones</th>
           </tr>
 
-          <?php if ($tratamientos && $tratamientos->num_rows > 0): ?>
-            <?php while ($row = $tratamientos->fetch_assoc()): ?>
-              <tr>
-                <form method="POST" autocomplete="off">
-                  <td><?= $row['id_tratamiento'] ?></td>
-                  <td><input type="text" name="nombre_tratamiento" value="<?= htmlspecialchars($row['nombre_tratamiento']) ?>" required></td>
-                  <td><input type="text" name="descripcion" value="<?= htmlspecialchars($row['descripcion']) ?>"></td>
-                  <td><input type="text" name="precio" value="<?= number_format((float)$row['costo'], 2, '.', '') ?>" inputmode="decimal" required></td>
-                  <td>
-                    <input type="hidden" name="id_tratamiento" value="<?= $row['id_tratamiento'] ?>">
-                    <button type="submit" name="editar_tratamiento" class="btn-modificar">💾 Guardar</button>
-                    <a href="tratamientos.php?eliminar=<?= $row['id_tratamiento'] ?>" class="btn-eliminar" onclick="return confirm('¿Eliminar este tratamiento?')">🗑️</a>
-                  </td>
-                </form>
-              </tr>
-            <?php endwhile; ?>
-          <?php else: ?>
-            <tr><td colspan="5" style="text-align:center;">No hay tratamientos registrados.</td></tr>
+          <?php
+          $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratamiento ASC");
+          if ($tratamientos && $tratamientos->num_rows > 0):
+            while ($row = $tratamientos->fetch_assoc()):
+          ?>
+            <tr>
+              <td><?= $row['id_tratamiento'] ?></td>
+              <td><?= htmlspecialchars($row['nombre_tratamiento']) ?></td>
+              <td><?= htmlspecialchars($row['descripcion']) ?></td>
+              <td>$<?= number_format((float)$row['costo'], 2) ?></td>
+            </tr>
+          <?php endwhile; else: ?>
+            <tr>
+              <td colspan="4" style="text-align:center;padding:20px;color:#555;">No hay tratamientos registrados.</td>
+            </tr>
           <?php endif; ?>
         </table>
       </div>
@@ -163,15 +232,65 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
 </div>
 
 <script>
-function toggleForm() {
-  const form = document.getElementById('nuevoTratamiento');
+function toggleNuevo() {
+  const form = document.getElementById('formNuevo');
   form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
-  if (form.style.display === 'block') {
-    window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
-  }
+  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+}
+
+function toggleEditar() {
+  const form = document.getElementById('formEditar');
+  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+}
+
+function toggleEliminar() {
+  const form = document.getElementById('formEliminar');
+  form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+  if (form.style.display === 'block') window.scrollTo({ top: form.offsetTop - 100, behavior: 'smooth' });
+}
+
+function rellenarDatos() {
+  const select = document.getElementById('id_tratamiento');
+  const opt = select.options[select.selectedIndex];
+  if (!opt) return;
+  document.getElementById('nombre_tratamiento').value = opt.getAttribute('data-nombre') || '';
+  document.getElementById('descripcion').value = opt.getAttribute('data-desc') || '';
+  document.getElementById('precio').value = opt.getAttribute('data-precio') || '';
 }
 </script>
+
+<!-- 💅 Estilos mejorados para textarea y select -->
+<style>
+.input-group textarea,
+.input-group select,
+.input-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+  background-color: #fff;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  appearance: none;
+  box-sizing: border-box;
+}
+
+.input-group textarea:focus,
+.input-group select:focus,
+.input-group input:focus {
+  border-color: #a16976;
+  box-shadow: 0 0 4px rgba(161,105,118,0.4);
+  outline: none;
+  background-color: #fffafc;
+}
+</style>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
+
+
+
