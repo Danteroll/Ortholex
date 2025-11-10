@@ -137,6 +137,20 @@ form.visual input[readonly], form.visual textarea[readonly] {
   border-bottom:1px solid #a16976;
   padding-bottom:4px;
 }
+.btn-ver {
+  background:#a16976;
+  color:white;
+  border:none;
+  padding:6px 12px;
+  border-radius:6px;
+  font-size:14px;
+  cursor:pointer;
+  transition:background 0.3s, transform 0.2s;
+}
+.btn-ver:hover {
+  background:#8b5564;
+  transform:scale(1.05);
+}
 </style>
 </head>
 <body>
@@ -238,13 +252,17 @@ form.visual input[readonly], form.visual textarea[readonly] {
     <h3 style="color:#1d3557;">Expedientes</h3>
     <div class="tabla-inventario">
       <table>
-        <tr><th>ID</th><th>Descripción</th><th>Archivo</th><th>Fecha</th><th>Acción</th></tr>
+        <tr><th>ID</th><th>Descripción</th><th>Fecha</th><th>Archivo</th><th>Acción</th></tr>
         <?php if ($expedientes && $expedientes->num_rows > 0): while($e = $expedientes->fetch_assoc()): ?>
         <tr>
           <td><?= $e['id_expediente'] ?></td>
           <td><?= htmlspecialchars($e['descripcion']) ?></td>
-          <td><a href="<?= htmlspecialchars($e['archivo']) ?>" target="_blank">Ver archivo</a></td>
           <td><?= date('d/m/Y H:i', strtotime($e['fecha_subida'])) ?> hrs</td>
+          <td>
+            <a href="<?= htmlspecialchars($e['archivo']) ?>" target="_blank">
+              <button type="button" class="btn-ver">Ver archivo</button>
+            </a>
+          </td>
           <td>
             <form method="POST" onsubmit="return confirm('¿Eliminar este expediente?');" style="margin:0;">
               <input type="hidden" name="accion" value="eliminar_expediente">
@@ -261,13 +279,22 @@ form.visual input[readonly], form.visual textarea[readonly] {
 
     <!-- ➕ NUEVO EXPEDIENTE -->
     <div class="form-box" id="formExpediente" style="display:none;">
-      <form method="POST" enctype="multipart/form-data">
-        <h3>Nuevo expediente</h3>
+      <form method="POST" enctype="multipart/form-data" class="visual">
+        <h3 class="section-title">Nuevo expediente</h3>
         <input type="hidden" name="accion" value="guardar_expediente">
         <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
-        <div class="input-group"><label>Descripción</label><textarea name="descripcion" required></textarea></div>
-        <div class="input-group"><label>Archivo (PDF o imagen)</label><input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required></div>
-        <div class="buttons">
+
+        <div class="input-group">
+          <label>Descripción</label>
+          <textarea name="descripcion" required placeholder="Ejemplo: Radiografía, análisis, receta..."></textarea>
+        </div>
+
+        <div class="input-group">
+          <label>Archivo (PDF o imagen)</label>
+          <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+
+        <div class="buttons" style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
           <button type="submit" class="btn-guardar">Guardar</button>
           <button type="button" class="btn-cancelar" onclick="toggle('formExpediente')">Cancelar</button>
         </div>
@@ -317,19 +344,18 @@ form.visual input[readonly], form.visual textarea[readonly] {
 </div>
 
 <script>
-function toggle(id){const el=document.getElementById(id);if(!el)return;el.style.display=(el.style.display==='none'||el.style.display==='')?'block':'none';if(el.style.display==='block')window.scrollTo({top:el.offsetTop-100,behavior:'smooth'});}
-(function(){window.history.pushState(null,"",window.location.href);window.onpopstate=function(){window.history.pushState(null,"",window.location.href);};})();
+function toggle(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.display=(el.style.display==='none'||el.style.display==='')?'block':'none';
+  if(el.style.display==='block')window.scrollTo({top:el.offsetTop-100,behavior:'smooth'});
+}
+(function(){
+  window.history.pushState(null,"",window.location.href);
+  window.onpopstate=function(){window.history.pushState(null,"",window.location.href);};
+})();
 </script>
 
 <?php $conexion->close(); ?>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
