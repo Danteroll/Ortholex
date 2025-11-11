@@ -6,6 +6,73 @@ date_default_timezone_set('America/Mexico_City');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $accion = $_POST['accion'] ?? '';
 
+// 🦷 GUARDAR EXPLORACIÓN BUCAL
+if ($accion === 'guardar_exploracion') {
+    $id_historia = intval($_POST['id_historia']);
+    $dolor_donde = trim($_POST['dolor_donde'] ?? '');
+    $calma = $_POST['calma'] ?? 'No';
+    $con_que = trim($_POST['con_que'] ?? '');
+    $ultima_visita = $_POST['ultima_visita'] ?: null;
+    $sangrado_encias = $_POST['sangrado_encias'] ?? 'No';
+    $sangrado_cuando = trim($_POST['sangrado_cuando'] ?? '');
+    $movilidad = $_POST['movilidad'] ?? 'No';
+    $indice_placa = trim($_POST['indice_placa'] ?? '');
+    $higiene = $_POST['higiene'] ?? 'Buena';
+    $manchas = $_POST['manchas'] ?? 'No';
+    $manchas_desc = trim($_POST['manchas_desc'] ?? '');
+    $golpe = $_POST['golpe'] ?? 'No';
+    $fractura = $_POST['fractura'] ?? 'No';
+    $cual_diente = trim($_POST['cual_diente'] ?? '');
+    $tratamiento_diente = trim($_POST['tratamiento_diente'] ?? '');
+    $dificultad_abrir = trim($_POST['dificultad_abrir'] ?? '');
+    $sarro = $_POST['sarro'] ?? 'No';
+    $periodontal = $_POST['periodontal'] ?? 'No';
+    $estado_bucal = trim($_POST['estado_bucal'] ?? '');
+    $diagnostico = trim($_POST['diagnostico'] ?? '');
+    $plan_tratamiento = trim($_POST['plan_tratamiento'] ?? '');
+    $observaciones = trim($_POST['observaciones'] ?? '');
+
+    $stmt = $conexion->prepare("
+        INSERT INTO exploracion_bucal (
+            id_historia, dolor_donde, calma, con_que, ultima_visita,
+            sangrado_encias, sangrado_cuando, movilidad, indice_placa, higiene,
+            manchas, manchas_desc, golpe, fractura, cual_diente,
+            tratamiento_diente, dificultad_abrir, sarro, periodontal, estado_bucal,
+            diagnostico, plan_tratamiento, observaciones, fecha_registro
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    ");
+
+    // ✅ 23 variables: 1 entero + 22 strings
+    $stmt->bind_param(
+        "issssssssssssssssssssss",
+        $id_historia, $dolor_donde, $calma, $con_que, $ultima_visita,
+        $sangrado_encias, $sangrado_cuando, $movilidad, $indice_placa, $higiene,
+        $manchas, $manchas_desc, $golpe, $fractura, $cual_diente,
+        $tratamiento_diente, $dificultad_abrir, $sarro, $periodontal, $estado_bucal,
+        $diagnostico, $plan_tratamiento, $observaciones
+    );
+
+    $ok = $stmt->execute();
+    $stmt->close();
+
+    // 🔁 Obtener id_paciente para regresar al perfil
+    $q = $conexion->prepare("SELECT id_paciente FROM historia_clinica WHERE id_historia = ?");
+    $q->bind_param("i", $id_historia);
+    $q->execute();
+    $r = $q->get_result()->fetch_assoc();
+    $q->close();
+
+    $id_paciente = $r['id_paciente'] ?? 0;
+
+    echo "<script>
+      alert('".($ok ? "Exploración bucal registrada correctamente." : "Error al guardar exploración bucal.")."');
+      window.location='pacientes.php?id_paciente=$id_paciente';
+    </script>";
+    exit;
+}
+
+
   // Guardar expediente
   if ($accion === 'guardar_expediente') {
     $id_p = intval($_POST['id_paciente']);
@@ -95,6 +162,8 @@ if ($id_paciente_sel > 0) {
     SELECT * FROM expedientes WHERE id_paciente=$id_paciente_sel ORDER BY fecha_subida DESC
   ");
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -247,6 +316,92 @@ form.visual input[readonly], form.visual textarea[readonly] {
       <label>Observaciones</label><textarea readonly><?= htmlspecialchars($historia['observaciones']) ?></textarea>
     </form>
     <?php endif; ?>
+
+<!-- 🦷 EXPLORACIÓN BUCAL -->
+<?php
+// Verificamos primero si hay historia válida
+if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
+  echo "<div style='text-align:center;margin:20px 0;color:#555;'>
+          <p>⚠️ No se puede registrar una exploración bucal sin una historia clínica.</p>
+        </div>";
+} else {
+  $id_historia = intval($historia['id_historia']);
+  $expl = $conexion->query("SELECT * FROM exploracion_bucal WHERE id_historia = $id_historia LIMIT 1");
+
+  if ($expl && $expl->num_rows > 0):
+    $exp = $expl->fetch_assoc();
+?>
+<form class="visual">
+  <div class="section-title">Exploración Bucal</div>
+
+  <label>¿Dónde hay dolor?</label><input readonly value="<?= htmlspecialchars($exp['dolor_donde']) ?>">
+  <label>¿Se calma?</label><input readonly value="<?= htmlspecialchars($exp['calma']) ?>">
+  <label>¿Con qué?</label><input readonly value="<?= htmlspecialchars($exp['con_que']) ?>">
+  <label>Última visita al dentista</label><input readonly value="<?= htmlspecialchars($exp['ultima_visita']) ?>">
+  <label>¿Sangrado de encías?</label><input readonly value="<?= htmlspecialchars($exp['sangrado_encias']) ?>">
+  <label>¿Cuándo?</label><input readonly value="<?= htmlspecialchars($exp['sangrado_cuando']) ?>">
+  <label>¿Movilidad dental?</label><input readonly value="<?= htmlspecialchars($exp['movilidad']) ?>">
+  <label>Índice de placa</label><input readonly value="<?= htmlspecialchars($exp['indice_placa']) ?>">
+  <label>Higiene</label><input readonly value="<?= htmlspecialchars($exp['higiene']) ?>">
+  <label>¿Manchas?</label><input readonly value="<?= htmlspecialchars($exp['manchas']) ?>">
+  <label>Descripción de manchas</label><input readonly value="<?= htmlspecialchars($exp['manchas_desc']) ?>">
+  <label>¿Golpe en dientes?</label><input readonly value="<?= htmlspecialchars($exp['golpe']) ?>">
+  <label>¿Fractura?</label><input readonly value="<?= htmlspecialchars($exp['fractura']) ?>">
+  <label>¿Cuál diente?</label><input readonly value="<?= htmlspecialchars($exp['cual_diente']) ?>">
+  <label>¿Tratamiento previo?</label><input readonly value="<?= htmlspecialchars($exp['tratamiento_diente']) ?>">
+  <label>¿Dificultad para abrir la boca?</label><input readonly value="<?= htmlspecialchars($exp['dificultad_abrir']) ?>">
+  <label>¿Sarro?</label><input readonly value="<?= htmlspecialchars($exp['sarro']) ?>">
+  <label>¿Enfermedad periodontal?</label><input readonly value="<?= htmlspecialchars($exp['periodontal']) ?>">
+  <label>Estado bucal general</label><textarea readonly><?= htmlspecialchars($exp['estado_bucal']) ?></textarea>
+  <label>Diagnóstico</label><textarea readonly><?= htmlspecialchars($exp['diagnostico']) ?></textarea>
+  <label>Plan de tratamiento</label><textarea readonly><?= htmlspecialchars($exp['plan_tratamiento']) ?></textarea>
+  <label>Observaciones</label><textarea readonly><?= htmlspecialchars($exp['observaciones']) ?></textarea>
+  <label>Fecha de registro</label><input readonly value="<?= date('d/m/Y H:i', strtotime($exp['fecha_registro'])) ?> hrs">
+</form>
+
+<?php else: ?>
+  <!-- 🔹 Si no hay exploración registrada -->
+  <div style="text-align:center;margin:20px 0;">
+    <p style="color:#555;">Este paciente no tiene una exploración bucal registrada.</p>
+    <button class="btn-modificar" onclick="toggle('formExploracion')">Agregar exploración bucal</button>
+  </div>
+
+  <!-- ➕ FORMULARIO NUEVA EXPLORACIÓN (oculto por defecto) -->
+  <form class="visual" id="formExploracion" method="POST" autocomplete="off" style="display:none;margin-top:20px;">
+    <div class="section-title">Registrar Exploración Bucal</div>
+    <input type="hidden" name="accion" value="guardar_exploracion">
+    <input type="hidden" name="id_historia" value="<?= $historia['id_historia'] ?>">
+
+    <label>¿Dónde hay dolor?</label><input name="dolor_donde">
+    <label>¿Se calma?</label><select name="calma"><option>No</option><option>Sí</option></select>
+    <label>¿Con qué?</label><input name="con_que">
+    <label>Última visita al dentista</label><input type="date" name="ultima_visita">
+    <label>¿Sangrado de encías?</label><select name="sangrado_encias"><option>No</option><option>Sí</option></select>
+    <label>¿Cuándo?</label><input name="sangrado_cuando">
+    <label>¿Movilidad dental?</label><select name="movilidad"><option>No</option><option>Sí</option></select>
+    <label>Índice de placa</label><input name="indice_placa">
+    <label>Higiene</label><select name="higiene"><option>Muy buena</option><option>Buena</option><option>Regular</option><option>Mala</option></select>
+    <label>¿Manchas?</label><select name="manchas"><option>No</option><option>Sí</option></select>
+    <label>Descripción de manchas</label><input name="manchas_desc">
+    <label>¿Golpe en dientes?</label><select name="golpe"><option>No</option><option>Sí</option></select>
+    <label>¿Fractura?</label><select name="fractura"><option>No</option><option>Sí</option></select>
+    <label>¿Cuál diente?</label><input name="cual_diente">
+    <label>¿Tratamiento previo?</label><input name="tratamiento_diente">
+    <label>¿Dificultad para abrir la boca?</label><input name="dificultad_abrir">
+    <label>¿Sarro?</label><select name="sarro"><option>No</option><option>Sí</option></select>
+    <label>¿Enfermedad periodontal?</label><select name="periodontal"><option>No</option><option>Sí</option></select>
+    <label>Estado bucal general</label><textarea name="estado_bucal"></textarea>
+    <label>Diagnóstico</label><textarea name="diagnostico"></textarea>
+    <label>Plan de tratamiento</label><textarea name="plan_tratamiento"></textarea>
+    <label>Observaciones</label><textarea name="observaciones"></textarea>
+
+    <div class="buttons" style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+      <button type="submit" class="btn-guardar">Guardar</button>
+      <button type="button" class="btn-cancelar" onclick="toggle('formExploracion')">Cancelar</button>
+    </div>
+  </form>
+<?php endif; } ?>
+
 
     <!-- 🗂️ EXPEDIENTES -->
     <h3 style="color:#1d3557;">Expedientes</h3>

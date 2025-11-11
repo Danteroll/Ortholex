@@ -49,7 +49,6 @@ body {
   top: 0;
   z-index: 5;
   box-sizing: border-box;
-  gap: 15px; /* 🔹 Espaciado interno entre elementos */
 }
 
 /* === Menú lateral === */
@@ -61,7 +60,6 @@ body {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  gap: 15px; /* 🔹 Espaciado vertical entre botones */
 }
 
 /* === Botones del menú lateral (sidebar) === */
@@ -335,6 +333,48 @@ button:active,
 }
 .tabla-inventario td {
   color: #4b5563;
+}
+.visual {
+  background-color: #f8f9fb;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.visual label {
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.visual input,
+.visual textarea,
+.visual select {
+  width: 100%;
+  background-color: #f4f6f8;
+  border: 1px solid #d0d0d0;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 15px;
+  margin-bottom: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.visual input:focus,
+.visual textarea:focus,
+.visual select:focus {
+  border-color: #a16976;
+  box-shadow: 0 0 5px rgba(161,105,118,0.3);
+  outline: none;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #7a2e40;
+  margin-bottom: 10px;
 }
 
 /* === Responsividad === */
