@@ -173,53 +173,7 @@ if ($id_paciente_sel > 0) {
 <title>Ortholex — Pacientes</title>
 <link rel="stylesheet" href="css/inicio.css">
 <style>
-form.visual {
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-  box-shadow:0 3px 6px rgba(0,0,0,0.1);
-  margin-bottom:40px;
-}
-form.visual label {
-  font-weight:bold;
-  display:block;
-  margin-top:10px;
-  color:#1d3557;
-}
-form.visual input, form.visual select, form.visual textarea {
-  width:100%;
-  padding:8px;
-  margin-top:5px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  background:#f9fafb;
-  color:#333;
-}
-form.visual input[readonly], form.visual textarea[readonly] {
-  background:#f1f5f9;
-  color:#222;
-}
-.section-title {
-  margin-top:25px;
-  color:#a16976;
-  font-size:18px;
-  border-bottom:1px solid #a16976;
-  padding-bottom:4px;
-}
-.btn-ver {
-  background:#a16976;
-  color:white;
-  border:none;
-  padding:6px 12px;
-  border-radius:6px;
-  font-size:14px;
-  cursor:pointer;
-  transition:background 0.3s, transform 0.2s;
-}
-.btn-ver:hover {
-  background:#8b5564;
-  transform:scale(1.05);
-}
+
 </style>
 </head>
 <body>

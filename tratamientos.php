@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_tratamiento'])
   $stmt->execute();
   $stmt->close();
 
-  echo "<script>alert('✅ Tratamiento agregado correctamente'); window.location='tratamientos.php';</script>";
+  echo "<script>alert('Tratamiento agregado correctamente'); window.location='tratamientos.php';</script>";
   exit;
 }
 
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['editar_tratamiento']))
   $stmt->execute();
   $stmt->close();
 
-  echo "<script>alert('✏️ Tratamiento actualizado correctamente'); window.location='tratamientos.php';</script>";
+  echo "<script>alert('Tratamiento actualizado correctamente'); window.location='tratamientos.php';</script>";
   exit;
 }
 
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['eliminar_tratamiento']
   $id = intval($_POST['id_tratamiento']);
   if ($id > 0) {
     $conexion->query("DELETE FROM tratamientos WHERE id_tratamiento=$id");
-    echo "<script>alert('🗑️ Tratamiento eliminado correctamente'); window.location='tratamientos.php';</script>";
+    echo "<script>alert('Tratamiento eliminado correctamente'); window.location='tratamientos.php';</script>";
     exit;
   } else {
     echo "<script>alert('Seleccione un tratamiento válido.');</script>";
@@ -94,7 +94,7 @@ $tratamientos = $conexion->query("SELECT * FROM tratamientos ORDER BY id_tratami
         </div>
       </div>
 
-      <!-- 🆕 Formulario: nuevo tratamiento -->
+      <!-- Formulario: nuevo tratamiento -->
       <div class="form-box" id="formNuevo" style="display:none;">
         <form method="POST">
           <h3>Registrar nuevo tratamiento</h3>
