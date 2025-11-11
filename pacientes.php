@@ -92,6 +92,66 @@ if ($accion === 'guardar_exploracion') {
     echo "<script>alert('Expediente guardado correctamente'); window.location='pacientes.php?id_paciente=$id_p';</script>";
     exit;
   }
+  // ✏️ EDITAR PACIENTE
+if ($accion === 'editar_paciente') {
+  $id_p = intval($_POST['id_paciente']);
+  $nombre = $_POST['nombre'];
+  $fecha_nacimiento = $_POST['fecha_nacimiento'];
+  $celular = $_POST['celular'];
+  $estado_civil = $_POST['estado_civil'];
+  $nacionalidad = $_POST['nacionalidad'];
+  $domicilio = $_POST['domicilio'];
+  $profesion = $_POST['profesion'];
+  $contacto_emergencia = $_POST['contacto_emergencia'];
+  $telefono_emergencia = $_POST['telefono_emergencia'];
+
+  $stmt = $conexion->prepare("UPDATE pacientes SET nombre=?, fecha_nacimiento=?, celular=?, estado_civil=?, nacionalidad=?, domicilio=?, profesion=?, contacto_emergencia=?, telefono_emergencia=? WHERE id_paciente=?");
+  $stmt->bind_param("sssssssssi", $nombre, $fecha_nacimiento, $celular, $estado_civil, $nacionalidad, $domicilio, $profesion, $contacto_emergencia, $telefono_emergencia, $id_p);
+  $ok = $stmt->execute();
+  $stmt->close();
+
+  echo "<script>alert('".($ok ? "Datos personales actualizados correctamente." : "Error al actualizar.")."'); window.location='pacientes.php?id_paciente=$id_p';</script>";
+  exit;
+}
+
+// ✏️ EDITAR HISTORIA CLÍNICA
+if ($accion === 'editar_historia') {
+  $id_h = intval($_POST['id_historia']);
+  $campos = [
+    'lugar','fecha','motivo_consulta','enf_general','enf_cual','medicamentos','alergias','transfusiones','operado','operado_deque','operado_cuando','fuma','toma','drogas','diabetes','hipertension','epilepsia','infarto','anemia','asma','hepatitis','tiroides','angina_pecho','tuberculosis','renal','venereas','vih','gastritis','embarazo','covid','cancer','otros','observaciones'
+  ];
+  $sets = implode(',', array_map(fn($f)=>"$f=?", $campos));
+  $stmt = $conexion->prepare("UPDATE historia_clinica SET $sets WHERE id_historia=?");
+  $tipos = str_repeat('s', count($campos)) . 'i';
+  $valores = array_map(fn($f)=>$_POST[$f] ?? '', $campos);
+  $valores[] = $id_h;
+  $stmt->bind_param($tipos, ...$valores);
+  $ok = $stmt->execute();
+  $stmt->close();
+
+  echo "<script>alert('".($ok ? "Historia clínica actualizada correctamente." : "Error al actualizar historia clínica.")."'); window.location='pacientes.php?id_paciente=".$_POST['id_paciente']."';</script>";
+  exit;
+}
+
+// ✏️ EDITAR EXPLORACIÓN BUCAL
+if ($accion === 'editar_exploracion') {
+  $id_e = intval($_POST['id_exploracion']);
+  $stmt = $conexion->prepare("UPDATE exploracion_bucal SET dolor_donde=?, calma=?, con_que=?, ultima_visita=?, sangrado_encias=?, sangrado_cuando=?, movilidad=?, indice_placa=?, higiene=?, manchas=?, manchas_desc=?, golpe=?, fractura=?, cual_diente=?, tratamiento_diente=?, dificultad_abrir=?, sarro=?, periodontal=?, estado_bucal=?, diagnostico=?, plan_tratamiento=?, observaciones=? WHERE id_exploracion=?");
+  $stmt->bind_param(
+    "ssssssssssssssssssssssi",
+    $_POST['dolor_donde'], $_POST['calma'], $_POST['con_que'], $_POST['ultima_visita'], $_POST['sangrado_encias'],
+    $_POST['sangrado_cuando'], $_POST['movilidad'], $_POST['indice_placa'], $_POST['higiene'], $_POST['manchas'],
+    $_POST['manchas_desc'], $_POST['golpe'], $_POST['fractura'], $_POST['cual_diente'], $_POST['tratamiento_diente'],
+    $_POST['dificultad_abrir'], $_POST['sarro'], $_POST['periodontal'], $_POST['estado_bucal'], $_POST['diagnostico'],
+    $_POST['plan_tratamiento'], $_POST['observaciones'], $id_e
+  );
+  $ok = $stmt->execute();
+  $stmt->close();
+
+  echo "<script>alert('".($ok ? "Exploración bucal actualizada correctamente." : "Error al actualizar.")."'); window.location='pacientes.php?id_paciente=".$_POST['id_paciente']."';</script>";
+  exit;
+}
+
 
   // 🗑️ Eliminar paciente
   if ($accion === 'eliminar_paciente') {
@@ -172,9 +232,6 @@ if ($id_paciente_sel > 0) {
 <meta charset="UTF-8">
 <title>Ortholex — Pacientes</title>
 <link rel="stylesheet" href="css/inicio.css">
-<style>
-
-</style>
 </head>
 <body>
 <div class="topbar">
@@ -221,7 +278,7 @@ if ($id_paciente_sel > 0) {
     <div class="inventario-header">
       <h2>Paciente: <?= htmlspecialchars($paciente_info['nombre']) ?></h2>
       <div style="display:flex;gap:10px;">
-        <button class="btn-modificar" onclick="toggle('formExpediente')">Nuevo expediente</button>
+        <button class="btn-modificar" onclick="toggle('formExpediente')">Nuevo archivo</button>
 
         <form method="POST" onsubmit="return confirm('¿Eliminar paciente y todos sus datos?');">
           <input type="hidden" name="accion" value="eliminar_paciente">
@@ -255,21 +312,271 @@ if ($id_paciente_sel > 0) {
       <label>Teléfono de emergencia</label>
       <input readonly value="<?= htmlspecialchars($paciente_info['telefono_emergencia']) ?>">
     </form>
+    <div style="text-align:center;margin:10px;">
+        <button class="btn-modificar" onclick="toggle('formEditarPaciente')">Editar datos personales</button>
+    </div>
+
+    <form class="visual" id="formEditarPaciente" method="POST" style="display:none;">
+      <input type="hidden" name="accion" value="editar_paciente">
+      <input type="hidden" name="id_paciente" value="<?= $paciente_info['id_paciente'] ?>">
+
+      <label>Nombre completo</label><input name="nombre" value="<?= htmlspecialchars($paciente_info['nombre']) ?>">
+      <label>Fecha de nacimiento</label><input type="date" name="fecha_nacimiento" value="<?= htmlspecialchars($paciente_info['fecha_nacimiento']) ?>">
+      <label>Celular</label><input name="celular" value="<?= htmlspecialchars($paciente_info['celular']) ?>">
+      <label>Estado civil</label><input name="estado_civil" value="<?= htmlspecialchars($paciente_info['estado_civil']) ?>">
+      <label>Nacionalidad</label><input name="nacionalidad" value="<?= htmlspecialchars($paciente_info['nacionalidad']) ?>">
+      <label>Domicilio</label><textarea name="domicilio"><?= htmlspecialchars($paciente_info['domicilio']) ?></textarea>
+      <label>Profesión</label><input name="profesion" value="<?= htmlspecialchars($paciente_info['profesion']) ?>">
+      <label>Contacto de emergencia</label><input name="contacto_emergencia" value="<?= htmlspecialchars($paciente_info['contacto_emergencia']) ?>">
+      <label>Teléfono de emergencia</label><input name="telefono_emergencia" value="<?= htmlspecialchars($paciente_info['telefono_emergencia']) ?>">
+
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+        <button class="btn-guardar" type="submit">Guardar cambios</button>
+        <button class="btn-cancelar" type="button" onclick="toggle('formEditarPaciente', true)">Cancelar</button>
+      </div>
+    </form>
+
 
     <!-- 🩺 HISTORIA CLÍNICA -->
     <?php if ($historia): ?>
     <form class="visual">
       <div class="section-title">Historia clínica (autorreporte)</div>
+
       <label>Lugar</label><input readonly value="<?= htmlspecialchars($historia['lugar']) ?>">
       <label>Fecha</label><input readonly value="<?= date('d/m/Y', strtotime($historia['fecha'])) ?>">
       <label>Motivo de consulta</label><textarea readonly><?= htmlspecialchars($historia['motivo_consulta']) ?></textarea>
+
+      <h3>Antecedentes generales</h3>
       <label>¿Sufre alguna enfermedad?</label><input readonly value="<?= htmlspecialchars($historia['enf_general']) ?>">
       <label>¿Cuál?</label><textarea readonly><?= htmlspecialchars($historia['enf_cual']) ?></textarea>
       <label>Medicamentos</label><textarea readonly><?= htmlspecialchars($historia['medicamentos']) ?></textarea>
       <label>Alergias</label><textarea readonly><?= htmlspecialchars($historia['alergias']) ?></textarea>
+      <label>Transfusiones</label><input readonly value="<?= htmlspecialchars($historia['transfusiones']) ?>">
+
+      <h3>Antecedentes quirúrgicos</h3>
+      <label>¿Ha sido operado?</label><input readonly value="<?= htmlspecialchars($historia['operado']) ?>">
+      <label>¿De qué?</label><textarea readonly><?= htmlspecialchars($historia['operado_deque']) ?></textarea>
+      <label>¿Cuándo?</label><input readonly value="<?= htmlspecialchars($historia['operado_cuando']) ?>">
+
+      <h3>Hábitos</h3>
+      <label>¿Fuma?</label><input readonly value="<?= htmlspecialchars($historia['fuma']) ?>">
+      <label>¿Toma alcohol?</label><input readonly value="<?= htmlspecialchars($historia['toma']) ?>">
+      <label>¿Consume drogas?</label><input readonly value="<?= htmlspecialchars($historia['drogas']) ?>">
+
+      <h3>Antecedentes médicos</h3>
+      <label>Diabetes</label><input readonly value="<?= htmlspecialchars($historia['diabetes']) ?>">
+      <label>Hipertensión</label><input readonly value="<?= htmlspecialchars($historia['hipertension']) ?>">
+      <label>Epilepsia</label><input readonly value="<?= htmlspecialchars($historia['epilepsia']) ?>">
+      <label>Infarto</label><input readonly value="<?= htmlspecialchars($historia['infarto']) ?>">
+      <label>Anemia</label><input readonly value="<?= htmlspecialchars($historia['anemia']) ?>">
+      <label>Asma</label><input readonly value="<?= htmlspecialchars($historia['asma']) ?>">
+      <label>Hepatitis</label><input readonly value="<?= htmlspecialchars($historia['hepatitis']) ?>">
+      <label>Tiroides</label><input readonly value="<?= htmlspecialchars($historia['tiroides']) ?>">
+      <label>Angina de pecho</label><input readonly value="<?= htmlspecialchars($historia['angina_pecho']) ?>">
+      <label>Tuberculosis</label><input readonly value="<?= htmlspecialchars($historia['tuberculosis']) ?>">
+      <label>Enfermedad renal</label><input readonly value="<?= htmlspecialchars($historia['renal']) ?>">
+      <label>Enfermedades venéreas</label><input readonly value="<?= htmlspecialchars($historia['venereas']) ?>">
+      <label>VIH/SIDA</label><input readonly value="<?= htmlspecialchars($historia['vih']) ?>">
+      <label>Gastritis</label><input readonly value="<?= htmlspecialchars($historia['gastritis']) ?>">
+      <label>Embarazo</label><input readonly value="<?= htmlspecialchars($historia['embarazo']) ?>">
+      <label>COVID-19</label><input readonly value="<?= htmlspecialchars($historia['covid']) ?>">
+      <label>Cáncer</label><input readonly value="<?= htmlspecialchars($historia['cancer']) ?>">
+      <label>Otros</label><textarea readonly><?= htmlspecialchars($historia['otros']) ?></textarea>
+
+      <h3>Observaciones finales</h3>
       <label>Observaciones</label><textarea readonly><?= htmlspecialchars($historia['observaciones']) ?></textarea>
     </form>
+    <?php else: ?>
+    <div style="text-align:center;margin:20px 0;color:#555;">
+      <p>Este paciente aún no tiene una historia clínica registrada.</p>
+    </div>
     <?php endif; ?>
+
+<div style="text-align:center;margin:10px;">
+  <button class="btn-modificar" onclick="toggle('formEditarHistoria')">Editar historia clínica</button>
+</div>
+
+<form class="visual" id="formEditarHistoria" method="POST" style="display:none;color:#1d3557;">
+  <input type="hidden" name="accion" value="editar_historia">
+  <input type="hidden" name="id_historia" value="<?= $historia['id_historia'] ?>">
+  <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
+
+  <label>Lugar</label>
+  <input name="lugar" value="<?= htmlspecialchars($historia['lugar']) ?>">
+
+  <label>Fecha</label>
+  <input type="date" name="fecha" value="<?= htmlspecialchars($historia['fecha']) ?>">
+
+  <label>Motivo de consulta</label>
+  <textarea name="motivo_consulta"><?= htmlspecialchars($historia['motivo_consulta']) ?></textarea>
+
+  <label>¿Sufre alguna enfermedad?</label>
+  <select name="enf_general">
+    <option <?= ($historia['enf_general'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['enf_general'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>¿Cuál?</label>
+  <textarea name="enf_cual"><?= htmlspecialchars($historia['enf_cual']) ?></textarea>
+
+  <label>Medicamentos</label>
+  <textarea name="medicamentos"><?= htmlspecialchars($historia['medicamentos']) ?></textarea>
+
+  <label>Alergias</label>
+  <textarea name="alergias"><?= htmlspecialchars($historia['alergias']) ?></textarea>
+
+  <label>Transfusiones</label>
+  <select name="transfusiones">
+    <option <?= ($historia['transfusiones'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['transfusiones'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>¿Ha sido operado?</label>
+  <select name="operado">
+    <option <?= ($historia['operado'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['operado'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>¿De qué?</label>
+  <textarea name="operado_deque"><?= htmlspecialchars($historia['operado_deque']) ?></textarea>
+
+  <label>¿Cuándo?</label>
+  <input type="date" name="operado_cuando" value="<?= htmlspecialchars($historia['operado_cuando']) ?>">
+
+  <label>¿Fuma?</label>
+  <select name="fuma">
+    <option <?= ($historia['fuma'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['fuma'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>¿Toma alcohol?</label>
+  <select name="toma">
+    <option <?= ($historia['toma'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['toma'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>¿Consume drogas?</label>
+  <select name="drogas">
+    <option <?= ($historia['drogas'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['drogas'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Diabetes</label>
+  <select name="diabetes">
+    <option <?= ($historia['diabetes'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['diabetes'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Hipertensión</label>
+  <select name="hipertension">
+    <option <?= ($historia['hipertension'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['hipertension'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Epilepsia</label>
+  <select name="epilepsia">
+    <option <?= ($historia['epilepsia'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['epilepsia'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Infarto</label>
+  <select name="infarto">
+    <option <?= ($historia['infarto'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['infarto'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Anemia</label>
+  <select name="anemia">
+    <option <?= ($historia['anemia'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['anemia'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Asma</label>
+  <select name="asma">
+    <option <?= ($historia['asma'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['asma'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Hepatitis</label>
+  <select name="hepatitis">
+    <option <?= ($historia['hepatitis'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['hepatitis'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Tiroides</label>
+  <select name="tiroides">
+    <option <?= ($historia['tiroides'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['tiroides'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Angina de pecho</label>
+  <select name="angina_pecho">
+    <option <?= ($historia['angina_pecho'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['angina_pecho'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Tuberculosis</label>
+  <select name="tuberculosis">
+    <option <?= ($historia['tuberculosis'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['tuberculosis'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Enfermedad renal</label>
+  <select name="renal">
+    <option <?= ($historia['renal'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['renal'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Enfermedades venéreas</label>
+  <select name="venereas">
+    <option <?= ($historia['venereas'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['venereas'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>VIH/SIDA</label>
+  <select name="vih">
+    <option <?= ($historia['vih'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['vih'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Gastritis</label>
+  <select name="gastritis">
+    <option <?= ($historia['gastritis'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['gastritis'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Embarazo</label>
+  <select name="embarazo">
+    <option <?= ($historia['embarazo'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['embarazo'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>COVID-19</label>
+  <select name="covid">
+    <option <?= ($historia['covid'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['covid'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Cáncer</label>
+  <select name="cancer">
+    <option <?= ($historia['cancer'] == 'Sí') ? 'selected' : '' ?>>Sí</option>
+    <option <?= ($historia['cancer'] == 'No') ? 'selected' : '' ?>>No</option>
+  </select>
+
+  <label>Otros</label>
+  <textarea name="otros"><?= htmlspecialchars($historia['otros']) ?></textarea>
+
+  <label>Observaciones</label>
+  <textarea name="observaciones"><?= htmlspecialchars($historia['observaciones']) ?></textarea>
+
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+    <button class="btn-guardar" type="submit">Guardar cambios</button>
+    <button class="btn-cancelar" type="button" onclick="toggle('formEditarHistoria', true)">Cancelar</button>
+  </div>
+</form>
+
+
+
 
 <!-- 🦷 EXPLORACIÓN BUCAL -->
 <?php
@@ -312,6 +619,35 @@ if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
   <label>Observaciones</label><textarea readonly><?= htmlspecialchars($exp['observaciones']) ?></textarea>
   <label>Fecha de registro</label><input readonly value="<?= date('d/m/Y H:i', strtotime($exp['fecha_registro'])) ?> hrs">
 </form>
+  <div style="text-align:center;margin:10px;">
+      <button class="btn-modificar" onclick="toggle('formEditarExploracion')">Editar exploración bucal</button>
+  </div>
+
+  <form class="visual" id="formEditarExploracion" method="POST" style="display:none;">
+    <input type="hidden" name="accion" value="editar_exploracion">
+    <input type="hidden" name="id_exploracion" value="<?= $exp['id_exploracion'] ?>">
+    <input type="hidden" name="id_paciente" value="<?= $id_paciente_sel ?>">
+
+    <label>¿Dónde hay dolor?</label><input name="dolor_donde" value="<?= htmlspecialchars($exp['dolor_donde']) ?>">
+    <label>¿Se calma?</label><input name="calma" value="<?= htmlspecialchars($exp['calma']) ?>">
+    <label>¿Con qué?</label><input name="con_que" value="<?= htmlspecialchars($exp['con_que']) ?>">
+    <label>Última visita</label><input type="date" name="ultima_visita" value="<?= htmlspecialchars($exp['ultima_visita']) ?>">
+    <label>¿Sangrado de encías?</label><input name="sangrado_encias" value="<?= htmlspecialchars($exp['sangrado_encias']) ?>">
+    <label>¿Cuándo?</label><input name="sangrado_cuando" value="<?= htmlspecialchars($exp['sangrado_cuando']) ?>">
+    <label>¿Movilidad dental?</label><input name="movilidad" value="<?= htmlspecialchars($exp['movilidad']) ?>">
+    <label>Índice de placa</label><input name="indice_placa" value="<?= htmlspecialchars($exp['indice_placa']) ?>">
+    <label>Higiene</label><input name="higiene" value="<?= htmlspecialchars($exp['higiene']) ?>">
+    <label>Estado bucal general</label><textarea name="estado_bucal"><?= htmlspecialchars($exp['estado_bucal']) ?></textarea>
+    <label>Diagnóstico</label><textarea name="diagnostico"><?= htmlspecialchars($exp['diagnostico']) ?></textarea>
+    <label>Plan de tratamiento</label><textarea name="plan_tratamiento"><?= htmlspecialchars($exp['plan_tratamiento']) ?></textarea>
+    <label>Observaciones</label><textarea name="observaciones"><?= htmlspecialchars($exp['observaciones']) ?></textarea>
+
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:15px;">
+      <button class="btn-guardar" type="submit">Guardar cambios</button>
+      <button class="btn-cancelar" type="button" onclick="toggle('formEditarExploracion', true)">Cancelar</button>
+    </div>
+  </form>
+
 
 <?php else: ?>
   <!-- 🔹 Si no hay exploración registrada -->
@@ -351,14 +687,14 @@ if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
 
     <div class="buttons" style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
       <button type="submit" class="btn-guardar">Guardar</button>
-      <button type="button" class="btn-cancelar" onclick="toggle('formExploracion')">Cancelar</button>
+      <button type="button" class="btn-cancelar" onclick="toggle('formExploracion', true)">Cancelar</button>
     </div>
   </form>
 <?php endif; } ?>
 
 
     <!-- 🗂️ EXPEDIENTES -->
-    <h3 style="color:#1d3557;">Expedientes</h3>
+    <h3 style="color:#1d3557;">Archivos</h3>
     <div class="tabla-inventario">
       <table>
         <tr><th>ID</th><th>Descripción</th><th>Fecha</th><th>Archivo</th><th>Acción</th></tr>
@@ -381,7 +717,7 @@ if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
           </td>
         </tr>
         <?php endwhile; else: ?>
-        <tr><td colspan="5" style="text-align:center;">Sin expedientes registrados</td></tr>
+        <tr><td colspan="5" style="text-align:center;">Sin archivos registrados</td></tr>
         <?php endif; ?>
       </table>
     </div>
@@ -405,7 +741,7 @@ if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
 
         <div class="buttons" style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
           <button type="submit" class="btn-guardar">Guardar</button>
-          <button type="button" class="btn-cancelar" onclick="toggle('formExpediente')">Cancelar</button>
+          <button type="button" class="btn-cancelar" onclick="toggle('formExpediente', true)">Cancelar</button>
         </div>
       </form>
     </div>
@@ -453,17 +789,34 @@ if (!isset($historia['id_historia']) || empty($historia['id_historia'])) {
 </div>
 
 <script>
-function toggle(id){
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.style.display=(el.style.display==='none'||el.style.display==='')?'block':'none';
-  if(el.style.display==='block')window.scrollTo({top:el.offsetTop-100,behavior:'smooth'});
+// ✅ Control centralizado de formularios: solo se cierran con "Cancelar"
+function toggle(id, forceClose = false) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  // Si se presiona Cancelar -> forzar cierre
+  if (forceClose) {
+    el.style.display = 'none';
+    return;
+  }
+
+  // Si ya está visible y se presiona el mismo botón -> no hacer nada
+  if (el.style.display === 'block') return;
+
+  // Si estaba oculto -> mostrar y hacer scroll suave
+  el.style.display = 'block';
+  window.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
 }
-(function(){
-  window.history.pushState(null,"",window.location.href);
-  window.onpopstate=function(){window.history.pushState(null,"",window.location.href);};
+
+// 🔒 Evita volver atrás en el navegador
+(function() {
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function() {
+    window.history.pushState(null, "", window.location.href);
+  };
 })();
 </script>
+
 
 <?php $conexion->close(); ?>
 </body>
