@@ -9,7 +9,7 @@ if (empty($idEliminar) || $cantidadEliminar <= 0) {
     exit;
 }
 
-// Verificar si el parámetro es ID o nombre
+// Verifica si el parámetro es ID o nombre
 if (is_numeric($idEliminar)) {
     $stmt = $conexion->prepare("SELECT id_objeto, nombre_objeto, cantidad FROM inventario WHERE id_objeto = ?");
     $stmt->bind_param("i", $idEliminar);
@@ -49,4 +49,3 @@ if ($nuevaCantidad == 0) {
 
 $stmt->close();
 $conexion->close();
-?>

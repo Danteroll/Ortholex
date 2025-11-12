@@ -16,7 +16,7 @@ if (!$conexion->set_charset('utf8mb4')) {
 }
 
 // Helper: filtra POST sin “undefined index”
-function field($name, $default = null) {
+function field($name, $default = null)
+{
   return isset($_POST[$name]) ? trim($_POST[$name]) : $default;
 }
-

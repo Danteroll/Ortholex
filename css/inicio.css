@@ -1,11 +1,11 @@
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background-color: #f3f4f8;
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* ✅ permite crecimiento vertical */
-  overflow-x: hidden; /* solo bloqueamos scroll horizontal */
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* === Barra superior === */
@@ -17,14 +17,14 @@ body {
   top: 0;
   left: 0;
   z-index: 10;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding-left: 30px;
 }
 
-/* ✅ Logo adaptable */
+/* Logo adaptable */
 .topbar-logo {
   height: 100%;
   max-height: 100%;
@@ -43,7 +43,7 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: calc(15vh + 30px); /* 🔹 Más espacio debajo de la franja superior */
+  padding-top: calc(15vh + 30px);
   position: fixed;
   left: 0;
   top: 0;
@@ -64,9 +64,9 @@ body {
 
 /* === Botones del menú lateral (sidebar) === */
 .menu li {
-  width: 85%;                /* Botones ligeramente más angostos */
-  padding: 18px 10px;        /* Altura más uniforme */
-  margin: 8px 0;             /* 🔹 Más separación vertical */
+  width: 85%;
+  padding: 18px 10px;
+  margin: 8px 0;
   cursor: pointer;
   color: white;
   transition: 0.3s;
@@ -93,9 +93,6 @@ body {
   display: block;
 }
 
-
-
-
 /* === Contenido principal === */
 .main {
   flex: 1;
@@ -105,11 +102,9 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-
   min-height: calc(100vh - 20vh);
   height: auto;
-
-  overflow-y: auto; /* ✅ solo el contenido derecho scrolleable */
+  overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
   background: #f3f4f8;
@@ -118,7 +113,7 @@ body {
 .content {
   background-color: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 40px;
   text-align: center;
 }
@@ -139,7 +134,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 70vh; /* centra verticalmente dentro del área blanca */
+  height: 70vh;
   text-align: center;
 }
 
@@ -155,14 +150,12 @@ body {
   color: #555;
 }
 
-
-
 /* === Contenedor del módulo === */
 .inventario-container {
   background: #fff;
   border-radius: 12px;
   padding: 40px 50px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   margin: 30px auto;
   width: 90%;
   max-width: 1000px;
@@ -217,7 +210,7 @@ button,
   font-weight: bold;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 /* Hover */
@@ -275,7 +268,7 @@ button:active,
   border-radius: 12px;
   padding: 25px 35px;
   margin-bottom: 25px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .form-box h3 {
@@ -306,7 +299,7 @@ button:active,
 
 .input-group input:focus {
   border-color: #a16976;
-  box-shadow: 0 0 4px rgba(161,105,118,0.4);
+  box-shadow: 0 0 4px rgba(161, 105, 118, 0.4);
 }
 
 /* === Tabla === */
@@ -339,7 +332,7 @@ button:active,
   border-radius: 12px;
   padding: 20px;
   margin-top: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .visual label {
@@ -366,7 +359,7 @@ button:active,
 .visual textarea:focus,
 .visual select:focus {
   border-color: #a16976;
-  box-shadow: 0 0 5px rgba(161,105,118,0.3);
+  box-shadow: 0 0 5px rgba(161, 105, 118, 0.3);
   outline: none;
 }
 

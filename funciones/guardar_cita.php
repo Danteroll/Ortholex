@@ -6,7 +6,7 @@ $id_tratamiento = field('id_tratamiento');
 $fecha = field('fecha');
 $hora = field('hora');
 $motivo = field('motivo');
-$estado = field('estado','pendiente');
+$estado = field('estado', 'pendiente');
 
 if (!$id_paciente || !$fecha || !$hora) {
   die("Datos incompletos para registrar cita.");
@@ -20,5 +20,5 @@ $stmt->bind_param('iissss', $id_paciente, $id_tratamiento, $fecha, $hora, $motiv
 if ($stmt->execute()) {
   echo "<script>alert('Cita registrada correctamente'); window.location='../inicio.php?page=citas';</script>";
 } else {
-  die('Error al guardar cita: '.$stmt->error);
+  die('Error al guardar cita: ' . $stmt->error);
 }

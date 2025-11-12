@@ -1,14 +1,12 @@
 <?php
 include("../conexion.php");
 
-// ===== Validar campo obligatorio =====
+// ===== Valida campo obligatorio =====
 if (empty($_POST['nombre_paciente'])) {
-    die("Error: el nombre del paciente es obligatorio.");
+   die("Error: el nombre del paciente es obligatorio.");
 }
 
-/* =======================================================
-   1️⃣ Insertar datos en tabla PACIENTES
-   ======================================================= */
+/* ====== Inserta los datos en tabla pacientes ====== */
 $nombre = $_POST['nombre_paciente'];
 $fecha_nac = $_POST['fecha_nacimiento'] ?? null;
 $edad = $_POST['edad'] ?? null;
@@ -19,7 +17,7 @@ $domicilio = $_POST['domicilio'] ?? '';
 $profesion = $_POST['profesion'] ?? '';
 $contacto_emergencia = $_POST['contacto_emergencia'] ?? '';
 $telefono_emergencia = $_POST['telefono_emergencia'] ?? '';
-// === Verificar duplicado ===
+// === Verifica duplicado ===
 $nombre = trim($_POST['nombre_paciente']);
 $cel = trim($_POST['cel']);
 
@@ -28,9 +26,9 @@ $stmt_verif->bind_param("ss", $nombre, $cel);
 $stmt_verif->execute();
 $res_verif = $stmt_verif->get_result();
 
-if($res_verif->num_rows > 0){
-    echo "<script>alert('Este paciente ya está registrado en el sistema.');window.location='pacientes_registrados.php';</script>";
-    exit;
+if ($res_verif->num_rows > 0) {
+   echo "<script>alert('Este paciente ya está registrado en el sistema.');window.location='pacientes_registrados.php';</script>";
+   exit;
 }
 
 $sql_paciente = "INSERT INTO pacientes 
@@ -42,9 +40,7 @@ $stmt->execute();
 $id_paciente = $conexion->insert_id;
 $stmt->close();
 
-/* =======================================================
-   2️⃣ Insertar datos generales en HISTORIA_CLINICA
-   ======================================================= */
+/* ====== Inserta los datos generales en historia_clinica ======== */
 $lugar = $_POST['lugar'] ?? '';
 $fecha = $_POST['fecha'] ?? '';
 $motivo = $_POST['motivo_consulta'] ?? '';
@@ -63,9 +59,7 @@ $stmt1->execute();
 $id_historia = $conexion->insert_id;
 $stmt1->close();
 
-/* =======================================================
-   3️⃣ Insertar ANTECEDENTES MÉDICOS
-   ======================================================= */
+/* ====== Inserta los antecedentes medicos ========== */
 $enf_general = $_POST['enf_general'] ?? 'No';
 $enf_cual = $_POST['enf_cual'] ?? '';
 $medicamentos = $_POST['medicamentos'] ?? '';
@@ -86,9 +80,7 @@ $stmt2->bind_param("isssssssssss", $id_historia, $enf_general, $enf_cual, $medic
 $stmt2->execute();
 $stmt2->close();
 
-/* =======================================================
-   4️⃣ Insertar EXPLORACIÓN BUCAL
-   ======================================================= */
+/* ===== Inserta la exploracion bucal ========= */
 $dolor_donde = $_POST['dolor_donde'] ?? '';
 $calma = $_POST['calma'] ?? 'No';
 $con_que = $_POST['con_que'] ?? '';
@@ -117,13 +109,10 @@ $stmt3->bind_param("isssssssssssssssssss", $id_historia, $dolor_donde, $calma, $
 $stmt3->execute();
 $stmt3->close();
 
-/* =======================================================
-   ✅ Confirmación
-   ======================================================= */
+/* ===== Confirmación ======= */
 echo "<script>
 alert('Historia clínica registrada correctamente con todos los datos.');
 window.location='index.php?page=expediente';
 </script>";
 
 $conexion->close();
-?>

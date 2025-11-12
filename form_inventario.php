@@ -4,18 +4,18 @@ date_default_timezone_set('America/Mexico_City');
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Ortholex — Inventario</title>
   <link rel="stylesheet" href="css/inicio.css">
 </head>
-<body> 
-  <!-- Barra superior -->
+
+<body>
   <div class="topbar">
     <img src="imagenes/logo" alt="Logo" class="topbar-logo">
   </div>
 
-  <!-- Sidebar -->
   <div class="sidebar">
     <ul class="menu">
       <li><a href="form_cita.php">Citas</a></li>
@@ -27,7 +27,6 @@ date_default_timezone_set('America/Mexico_City');
     </ul>
   </div>
 
-  <!-- Contenido principal -->
   <div class="main">
     <div class="content">
 
@@ -36,7 +35,7 @@ date_default_timezone_set('America/Mexico_City');
         <button id="btnModificar" class="btn-modificar">Modificar inventario</button>
       </div>
 
-      <!-- 📋 Tabla normal (solo lectura) -->
+      <!-- Tabla inventario -->
       <div class="tabla-inventario" id="tablaNormal">
         <table>
           <thead>
@@ -54,24 +53,27 @@ date_default_timezone_set('America/Mexico_City');
             if ($res->num_rows > 0):
               while ($fila = $res->fetch_assoc()):
             ?>
+                <tr>
+                  <td><?= $fila['id_objeto'] ?></td>
+                  <td><?= htmlspecialchars($fila['nombre_objeto']) ?></td>
+                  <td><?= htmlspecialchars($fila['descripcion']) ?></td>
+                  <td><?= $fila['cantidad'] ?></td>
+                  <td><?= date('d-m-Y H:i', strtotime($fila['fecha_modificacion'])) ?> hrs</td>
+                </tr>
+              <?php endwhile;
+            else: ?>
               <tr>
-                <td><?= $fila['id_objeto'] ?></td>
-                <td><?= htmlspecialchars($fila['nombre_objeto']) ?></td>
-                <td><?= htmlspecialchars($fila['descripcion']) ?></td>
-                <td><?= $fila['cantidad'] ?></td>
-                <td><?= date('d-m-Y H:i', strtotime($fila['fecha_modificacion'])) ?> hrs</td>
+                <td colspan="5" style="text-align:center;">No hay artículos registrados</td>
               </tr>
-            <?php endwhile; else: ?>
-              <tr><td colspan="5" style="text-align:center;">No hay artículos registrados</td></tr>
             <?php endif; ?>
           </tbody>
         </table>
       </div>
 
-      <!-- ✏️ Sección de edición -->
+      <!-- Sección de edición -->
       <div id="seccionEditable" style="display:none; margin-top:25px;">
 
-        <!-- 🔧 Botones y formularios -->
+        <!-- Botones y formularios -->
         <div id="accionesInventario">
           <h3 style="text-align:center;">Seleccione una acción:</h3>
           <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
@@ -79,7 +81,7 @@ date_default_timezone_set('America/Mexico_City');
             <button id="btnEliminar" class="btn-eliminar">Eliminar artículo</button>
           </div>
 
-          <!-- 🆕 Formulario agregar -->
+          <!-- Formulario para agregar -->
           <div id="formAgregar" class="form-box" style="display:none;">
             <form action="funciones/guardar_inventario.php" method="post" autocomplete="off">
               <h3>Agregar nuevo artículo</h3>
@@ -106,7 +108,7 @@ date_default_timezone_set('America/Mexico_City');
             </form>
           </div>
 
-          <!-- 🗑️ Formulario eliminar -->
+          <!-- Formulario para eliminar -->
           <div id="formEliminar" class="form-box" style="display:none;">
             <form action="funciones/eliminar_inventario.php" method="post" autocomplete="off">
               <h3>Eliminar artículo</h3>
@@ -138,7 +140,7 @@ date_default_timezone_set('America/Mexico_City');
           </div>
         </div>
 
-        <!-- 📋 Tabla editable -->
+        <!-- Tabla editable -->
         <div class="tabla-inventario" id="tablaEditable">
           <table>
             <thead>
@@ -157,21 +159,24 @@ date_default_timezone_set('America/Mexico_City');
               if ($res2->num_rows > 0):
                 while ($fila = $res2->fetch_assoc()):
               ?>
+                  <tr>
+                    <form method="POST" action="funciones/editar_inventario.php">
+                      <td><?= $fila['id_objeto'] ?></td>
+                      <td><input type="text" name="nombre_objeto" value="<?= htmlspecialchars($fila['nombre_objeto']) ?>" required></td>
+                      <td><input type="text" name="descripcion" value="<?= htmlspecialchars($fila['descripcion']) ?>"></td>
+                      <td><input type="number" name="cantidad" value="<?= $fila['cantidad'] ?>" min="0" required></td>
+                      <td><?= date('d-m-Y H:i', strtotime($fila['fecha_modificacion'])) ?> hrs</td>
+                      <td>
+                        <input type="hidden" name="id_objeto" value="<?= $fila['id_objeto'] ?>">
+                        <button type="submit" class="btn-modificar">Actualizar</button>
+                      </td>
+                    </form>
+                  </tr>
+                <?php endwhile;
+              else: ?>
                 <tr>
-                  <form method="POST" action="funciones/editar_inventario.php">
-                    <td><?= $fila['id_objeto'] ?></td>
-                    <td><input type="text" name="nombre_objeto" value="<?= htmlspecialchars($fila['nombre_objeto']) ?>" required></td>
-                    <td><input type="text" name="descripcion" value="<?= htmlspecialchars($fila['descripcion']) ?>"></td>
-                    <td><input type="number" name="cantidad" value="<?= $fila['cantidad'] ?>" min="0" required></td>
-                    <td><?= date('d-m-Y H:i', strtotime($fila['fecha_modificacion'])) ?> hrs</td>
-                    <td>
-                      <input type="hidden" name="id_objeto" value="<?= $fila['id_objeto'] ?>">
-                      <button type="submit" class="btn-modificar">Actualizar</button>
-                    </td>
-                  </form>
+                  <td colspan="6" style="text-align:center;">No hay artículos registrados</td>
                 </tr>
-              <?php endwhile; else: ?>
-                <tr><td colspan="6" style="text-align:center;">No hay artículos registrados</td></tr>
               <?php endif; ?>
             </tbody>
           </table>
@@ -226,7 +231,7 @@ date_default_timezone_set('America/Mexico_City');
   </script>
 
   <style>
-    /* 🔹 Inputs de formularios */
+    /* Inputs de formularios */
     .input-group input,
     .input-group select {
       width: 100%;
@@ -243,13 +248,13 @@ date_default_timezone_set('America/Mexico_City');
     .input-group input:focus,
     .input-group select:focus {
       border-color: #a16976;
-      box-shadow: 0 0 4px rgba(161,105,118,0.4);
+      box-shadow: 0 0 4px rgba(161, 105, 118, 0.4);
       outline: none;
     }
 
-    /* 🔹 Inputs dentro de la tabla editable */
+    /* Inputs dentro de la tabla editable */
     table input {
-      width: 85%; /* más compactos */
+      width: 85%;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 6px;
@@ -261,7 +266,7 @@ date_default_timezone_set('America/Mexico_City');
 
     table input:focus {
       border-color: #a16976;
-      box-shadow: 0 0 3px rgba(161,105,118,0.4);
+      box-shadow: 0 0 3px rgba(161, 105, 118, 0.4);
       outline: none;
     }
 
@@ -269,19 +274,17 @@ date_default_timezone_set('America/Mexico_City');
       vertical-align: middle;
     }
   </style>
-<script>
-  // 🚫 Bloquear navegación con botones "Atrás" y "Adelante"
-  (function () {
-    // Limpia el historial actual para evitar retroceso
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = function () {
+  <script>
+    // Bloquea navegación con botones "Atrás" y "Adelante"
+    (function() {
+      // Limpia el historial actual para evitar retroceso
       window.history.pushState(null, "", window.location.href);
-    };
-  })();
-</script>
-<?php $conexion->close(); ?>
+      window.onpopstate = function() {
+        window.history.pushState(null, "", window.location.href);
+      };
+    })();
+  </script>
+  <?php $conexion->close(); ?>
 </body>
+
 </html>
-
-
-

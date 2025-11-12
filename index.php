@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ortholex - Iniciar Sesión</title>
   <link rel="stylesheet" href="css/index.css">
 </head>
+
 <body>
-  <!-- Barra superior -->
   <div class="topbar">
     <img src="imagenes/logo" alt="Logo" class="topbar-logo">
   </div>
 
-  <!-- Contenedor principal -->
   <div class="login-container">
     <div class="login-box">
       <h2>Bienvenida, Doctora</h2>
@@ -21,15 +21,15 @@
       <form id="loginForm" autocomplete="off">
         <div class="input-group">
           <label for="password">Contraseña</label>
-          <input 
-            type="password" 
-            id="password" 
-            name="password" 
-            placeholder="Ingresa tu contraseña" 
-            required 
-            autocomplete="off" 
-            autocorrect="off" 
-            autocapitalize="off" 
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Ingresa tu contraseña"
+            required
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
             spellcheck="false">
           <p id="error-message" class="error-message"></p>
         </div>
@@ -48,29 +48,29 @@
         <form id="changePasswordForm" autocomplete="off">
           <div class="input-group">
             <label for="securityAnswer">¿Cuál es el nombre de tu hija?</label>
-            <input 
-              type="password" 
-              id="securityAnswer" 
-              name="securityAnswer" 
-              placeholder="Escribe tu respuesta" 
-              required 
-              autocomplete="off" 
-              autocorrect="off" 
-              autocapitalize="off" 
+            <input
+              type="password"
+              id="securityAnswer"
+              name="securityAnswer"
+              placeholder="Escribe tu respuesta"
+              required
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
               spellcheck="false">
           </div>
 
           <div class="input-group">
             <label for="newPass">Nueva contraseña</label>
-            <input 
-              type="password" 
-              id="newPass" 
-              name="newPass" 
-              placeholder="Ingresa una nueva contraseña" 
-              required 
-              autocomplete="off" 
-              autocorrect="off" 
-              autocapitalize="off" 
+            <input
+              type="password"
+              id="newPass"
+              name="newPass"
+              placeholder="Ingresa una nueva contraseña"
+              required
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
               spellcheck="false">
           </div>
 
@@ -86,9 +86,9 @@
   </div>
 
   <script>
-    // === Bloquear botones del navegador ===
+    // === Bloquea botones del navegador ===
     history.pushState(null, document.title, location.href);
-    window.addEventListener('popstate', function () {
+    window.addEventListener('popstate', function() {
       history.pushState(null, document.title, location.href);
     });
 
@@ -168,4 +168,5 @@
     });
   </script>
 </body>
+
 </html>

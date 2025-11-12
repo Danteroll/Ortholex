@@ -2,12 +2,12 @@
 include("../conexion.php");
 date_default_timezone_set('America/Mexico_City');
 
-// Obtener los datos del formulario
+// Obtiene los datos del formulario
 $nombre = trim($_POST['nombre']);
 $cantidad = intval($_POST['cantidad']);
 $descripcion = trim($_POST['descripcion']);
 
-// Generar fecha y hora actuales (en formato completo)
+// Genera fecha y hora actuales
 $fecha_actual = date('Y-m-d H:i:s');
 
 // Validaciones básicas
@@ -16,14 +16,14 @@ if (empty($nombre) || $cantidad <= 0) {
     exit;
 }
 
-// Verificar si el artículo ya existe
+// Verifica si el artículo ya existe
 $stmt = $conexion->prepare("SELECT id_objeto, cantidad FROM inventario WHERE nombre_objeto = ?");
 $stmt->bind_param("s", $nombre);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
-    // ✅ Si existe, se actualiza la cantidad y la fecha de modificación
+    // Si existe, se actualiza la cantidad y la fecha de modificación
     $row = $result->fetch_assoc();
     $nuevo_total = $row['cantidad'] + $cantidad;
 
@@ -36,9 +36,8 @@ if ($result->num_rows > 0) {
     $update->execute();
 
     echo "<script>alert('Cantidad actualizada correctamente.'); window.location='../form_inventario.php';</script>";
-
 } else {
-    // ✅ Si no existe, se inserta nuevo artículo con fecha y hora actual
+    // Si no existe, se inserta nuevo artículo con fecha y hora actual
     $insert = $conexion->prepare("
         INSERT INTO inventario (nombre_objeto, descripcion, cantidad, fecha_modificacion)
         VALUES (?, ?, ?, ?)
@@ -51,4 +50,3 @@ if ($result->num_rows > 0) {
 
 $stmt->close();
 $conexion->close();
-?>
