@@ -162,7 +162,7 @@ date_default_timezone_set('America/Mexico_City');
       ?>
 
       <!-- ===================== LISTA DE EXPEDIENTES ===================== -->
-      <h2>📁 Expedientes registrados</h2>
+      <h2>Expedientes registrados</h2>
       <table class="tabla-inventario">
         <tr>
           <th>ID</th>

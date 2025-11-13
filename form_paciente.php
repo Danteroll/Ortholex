@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
   $stmt2->execute();
   $stmt2->close();
 
-  echo "<script>alert('✅ Registro completado correctamente.'); window.location='form_cita.php';</script>";
+  echo "<script>alert('Registro completado correctamente.'); window.location='form_cita.php';</script>";
   exit;
 }
 ?>
