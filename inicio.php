@@ -26,7 +26,7 @@
   <div class="main">
     <div class="content">
       <div class="bienvenida-centro">
-        <h1>Bienvenida al Sistema DEADBJ</h1>
+        <h1>Bienvenida al Sistema DEADJB</h1>
         <p>Seleccione una opción del menú lateral para comenzar.</p>
       </div>
     </div>
