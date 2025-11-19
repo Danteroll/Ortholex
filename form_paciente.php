@@ -256,7 +256,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['registrar_paciente']))
         </select></div>
 
       <?php
-      $enfs = ['diabetes', 'hipertension', 'epilepsia', 'infarto', 'anemia', 'asma', 'hepatitis', 'tiroides', 'angina_pecho', 'tuberculosis', 'renal', 'venereas', 'vih', 'gastritis', 'embarazo', 'covid', 'cancer'];
+      $enfs = ['diabetes', 'hipertension', 'epilepsia', 'infarto', 'anemia', 'asma', 'hepatitis', 'tiroides', 'angina_pecho', 'tuberculosis', 'renal', 'venereas', 'VIH', 'gastritis', 'embarazo', 'covid', 'cancer'];
       foreach ($enfs as $e) {
         echo "<div class='input-group'>
                   <label>" . ucfirst(str_replace('_', ' ', $e)) . "</label>
